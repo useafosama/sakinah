@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { BookOpen, Youtube, ExternalLink, Sparkles, Mic2, Search, Play, Volume2 } from 'lucide-react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { BookOpen, Youtube, ExternalLink, Sparkles, Mic2, Search, Play, Volume2, AlertCircle, Loader2 } from 'lucide-react';
 import surahsData from '../../data/surahs.json';
 
 interface SurahItem {
@@ -7,6 +7,35 @@ interface SurahItem {
   name: string;
   ayahs: number;
   type: string;
+  videoId: string;
+}
+
+declare global {
+  interface Window {
+    onYouTubeIframeAPIReady?: () => void;
+    YT?: {
+      Player: new (
+        elementId: string | HTMLElement,
+        options: {
+          videoId?: string;
+          playerVars?: Record<string, any>;
+          events?: {
+            onReady?: (event: { target: any }) => void;
+            onStateChange?: (event: { data: number }) => void;
+            onError?: (event: { data: number }) => void;
+          };
+        }
+      ) => any;
+      PlayerState?: {
+        UNSTARTED: number;
+        ENDED: number;
+        PLAYING: number;
+        PAUSED: number;
+        BUFFERING: number;
+        CUED: number;
+      };
+    };
+  }
 }
 
 const surahs = surahsData as SurahItem[];
@@ -14,12 +43,20 @@ const PLAYLIST_ID = "PL2hoGhz2jBSqpWTv6svf4e3HCtPMwqY0g";
 const PLAYLIST_URL = `https://youtube.com/playlist?list=${PLAYLIST_ID}`;
 
 export const QuranPlayer: React.FC = () => {
-  const [selectedIndex, setSelectedIndex] = useState<number>(0); // 0-indexed for playlist
+  const [selectedSurahNumber, setSelectedSurahNumber] = useState<number>(1);
   const [hasSelected, setHasSelected] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const activeItemRef = useRef<HTMLButtonElement | null>(null);
+  const [isPlayerLoading, setIsPlayerLoading] = useState<boolean>(true);
+  const [playerError, setPlayerError] = useState<boolean>(false);
+  const [useApiPlayer, setUseApiPlayer] = useState<boolean>(false);
 
-  const currentSurah = surahs[selectedIndex] || surahs[0];
+  const activeItemRef = useRef<HTMLButtonElement | null>(null);
+  const ytPlayerRef = useRef<any>(null);
+  const playerContainerId = "youtube-quran-player-frame";
+
+  const currentSurah = useMemo(() => {
+    return surahs.find(s => s.number === selectedSurahNumber) || surahs[0];
+  }, [selectedSurahNumber]);
 
   // Filter surahs based on search query
   const filteredSurahs = useMemo(() => {
@@ -33,24 +70,130 @@ export const QuranPlayer: React.FC = () => {
     );
   }, [searchQuery]);
 
-  // YouTube embed URL with playlist and current index
-  const embedUrl = useMemo(() => {
-    return `https://www.youtube.com/embed?listType=playlist&list=${PLAYLIST_ID}&index=${selectedIndex}${
-      hasSelected ? '&autoplay=1' : ''
-    }&enablejsapi=1&rel=0`;
-  }, [selectedIndex, hasSelected]);
+  // Direct video URL for external YouTube button
+  const currentVideoUrl = useMemo(() => {
+    if (currentSurah.videoId) {
+      return `https://www.youtube.com/watch?v=${currentSurah.videoId}&list=${PLAYLIST_ID}`;
+    }
+    return PLAYLIST_URL;
+  }, [currentSurah.videoId]);
 
-  const handleSelectSurah = (index: number) => {
-    setSelectedIndex(index);
+  // Iframe fallback embed URL
+  const embedUrl = useMemo(() => {
+    const videoId = currentSurah.videoId || 'JFJDsmO1Yjk';
+    return `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=${hasSelected ? 1 : 0}&rel=0&playsinline=1&modestbranding=1&enablejsapi=1`;
+  }, [currentSurah.videoId, hasSelected]);
+
+  // Initialize YouTube IFrame API
+  useEffect(() => {
+    let isMounted = true;
+
+    const initYT = () => {
+      if (!window.YT || !window.YT.Player) return;
+      const element = document.getElementById(playerContainerId);
+      if (!element) return;
+
+      try {
+        if (ytPlayerRef.current && typeof ytPlayerRef.current.destroy === 'function') {
+          ytPlayerRef.current.destroy();
+        }
+
+        ytPlayerRef.current = new window.YT.Player(playerContainerId, {
+          videoId: currentSurah.videoId,
+          playerVars: {
+            autoplay: hasSelected ? 1 : 0,
+            rel: 0,
+            modestbranding: 1,
+            playsinline: 1,
+          },
+          events: {
+            onReady: () => {
+              if (isMounted) {
+                setIsPlayerLoading(false);
+                setUseApiPlayer(true);
+                setPlayerError(false);
+              }
+            },
+            onError: () => {
+              if (isMounted) {
+                setPlayerError(true);
+                setIsPlayerLoading(false);
+              }
+            },
+            onStateChange: (event) => {
+              if (event.data === 1) {
+                setIsPlayerLoading(false);
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.warn('YouTube Iframe Player API fallback to iframe:', err);
+        if (isMounted) {
+          setUseApiPlayer(false);
+          setIsPlayerLoading(false);
+        }
+      }
+    };
+
+    if (window.YT && window.YT.Player) {
+      initYT();
+    } else {
+      const existingScript = document.getElementById('youtube-iframe-api-script');
+      if (!existingScript) {
+        const tag = document.createElement('script');
+        tag.id = 'youtube-iframe-api-script';
+        tag.src = 'https://www.youtube.com/iframe_api';
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag?.parentNode?.insertBefore(tag, firstScriptTag);
+      }
+
+      const prevOnReady = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        if (typeof prevOnReady === 'function') prevOnReady();
+        if (isMounted) initYT();
+      };
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Handle Surah selection
+  const handleSelectSurah = useCallback((surahNumber: number) => {
+    setSelectedSurahNumber(surahNumber);
     setHasSelected(true);
-  };
+    setPlayerError(false);
+
+    const targetSurah = surahs.find(s => s.number === surahNumber);
+    if (!targetSurah || !targetSurah.videoId) {
+      setPlayerError(true);
+      return;
+    }
+
+    setIsPlayerLoading(true);
+
+    if (ytPlayerRef.current && typeof ytPlayerRef.current.loadVideoById === 'function') {
+      try {
+        ytPlayerRef.current.loadVideoById({
+          videoId: targetSurah.videoId,
+          startSeconds: 0
+        });
+        setTimeout(() => setIsPlayerLoading(false), 800);
+      } catch (e) {
+        console.warn('loadVideoById failed, fallback to iframe reload', e);
+        setUseApiPlayer(false);
+      }
+    }
+  }, []);
 
   // Scroll active item into view when selected
   useEffect(() => {
     if (activeItemRef.current) {
       activeItemRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
-  }, [selectedIndex]);
+  }, [selectedSurahNumber]);
 
   return (
     <section className="w-full mx-auto my-4 sm:my-6" aria-label="القرآن الكريم كاملًا">
@@ -82,23 +225,59 @@ export const QuranPlayer: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
           {/* Main Video Player Column (8 cols on desktop) */}
           <div className="lg:col-span-7 xl:col-span-8 flex flex-col space-y-3">
-            {/* 16:9 Responsive Player Wrapper */}
+            {/* 16:9 Responsive Player Container */}
             <div className="relative w-full aspect-video rounded-xl sm:rounded-2xl overflow-hidden bg-sand-200 dark:bg-night-900 border border-sand-300/80 dark:border-night-border shadow-inner">
-              <iframe
-                key={`${selectedIndex}-${hasSelected}`}
-                src={embedUrl}
-                title={`تلاوة سورة ${currentSurah.name} — الشيخ مشاري العفاسي`}
-                className="absolute inset-0 w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-                loading="lazy"
+              {/* YouTube API Container */}
+              <div
+                id={playerContainerId}
+                className={`w-full h-full ${useApiPlayer ? 'block' : 'hidden'}`}
               />
+
+              {/* Direct Iframe fallback (if API player is inactive or initial) */}
+              {!useApiPlayer && (
+                <iframe
+                  key={currentSurah.videoId}
+                  src={embedUrl}
+                  title={`تلاوة سورة ${currentSurah.name} — الشيخ مشاري راشد العفاسي`}
+                  className="absolute inset-0 w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  loading="lazy"
+                  onLoad={() => setIsPlayerLoading(false)}
+                />
+              )}
+
+              {/* Loading State Overlay */}
+              {isPlayerLoading && (
+                <div className="absolute inset-0 bg-sand-900/40 backdrop-blur-[2px] flex flex-col items-center justify-center text-sand-50 transition-opacity duration-300 pointer-events-none">
+                  <Loader2 className="w-8 h-8 animate-spin text-gold-400 mb-2" />
+                  <span className="text-xs font-arabic-text">جاري تحميل سورة {currentSurah.name}...</span>
+                </div>
+              )}
+
+              {/* Error State Overlay */}
+              {playerError && (
+                <div className="absolute inset-0 bg-sand-900/90 flex flex-col items-center justify-center p-4 text-center text-sand-50">
+                  <AlertCircle className="w-8 h-8 text-red-400 mb-2" />
+                  <p className="text-sm font-arabic-text font-bold mb-1">تعذر تشغيل هذا المقطع مباشرة</p>
+                  <p className="text-xs text-sand-200 mb-3 font-arabic-text">يمكنك فتح المقطع مباشرة على YouTube أو اختيار سورة أخرى</p>
+                  <a
+                    href={currentVideoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-arabic-text font-bold transition-colors"
+                  >
+                    <Youtube className="w-4 h-4" />
+                    <span>فتح سورة {currentSurah.name} على YouTube</span>
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* Currently Selected Surah Meta & YouTube Link */}
             <div className="p-3.5 bg-sand-50/80 dark:bg-night-900/60 rounded-xl border border-sand-200/70 dark:border-night-border flex flex-wrap items-center justify-between gap-2.5">
-              <div className="flex items-center gap-2">
-                <span className="w-8 h-8 rounded-lg bg-islamic-800 dark:bg-gold-400 text-sand-50 dark:text-islamic-950 flex items-center justify-center text-xs font-bold font-sans">
+              <div className="flex items-center gap-2.5">
+                <span className="w-9 h-9 rounded-lg bg-islamic-800 dark:bg-gold-400 text-sand-50 dark:text-islamic-950 flex items-center justify-center text-xs font-bold font-sans shadow-xs">
                   {String(currentSurah.number).padStart(3, '0')}
                 </span>
                 <div>
@@ -112,11 +291,11 @@ export const QuranPlayer: React.FC = () => {
               </div>
 
               <a
-                href={PLAYLIST_URL}
+                href={currentVideoUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-night-800 text-stone-600 dark:text-night-muted hover:text-red-600 dark:hover:text-red-400 border border-sand-200/80 dark:border-night-border text-xs font-medium transition-colors"
-                title="فتح قائمة التشغيل على YouTube"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white dark:bg-night-800 text-stone-600 dark:text-night-muted hover:text-red-600 dark:hover:text-red-400 border border-sand-200/80 dark:border-night-border text-xs font-medium transition-colors cursor-pointer"
+                title={`فتح سورة ${currentSurah.name} على YouTube`}
               >
                 <Youtube className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
                 <span>فتح على YouTube</span>
@@ -158,14 +337,13 @@ export const QuranPlayer: React.FC = () => {
                 </p>
               ) : (
                 filteredSurahs.map((surah) => {
-                  const surahIndex = surah.number - 1;
-                  const isSelected = selectedIndex === surahIndex;
+                  const isSelected = selectedSurahNumber === surah.number;
 
                   return (
                     <button
                       key={surah.number}
                       ref={isSelected ? activeItemRef : null}
-                      onClick={() => handleSelectSurah(surahIndex)}
+                      onClick={() => handleSelectSurah(surah.number)}
                       className={`w-full flex items-center justify-between p-2 sm:p-2.5 rounded-xl text-right transition-all cursor-pointer ${
                         isSelected
                           ? 'bg-islamic-800 dark:bg-gold-400 text-sand-50 dark:text-islamic-950 font-semibold shadow-2xs'
