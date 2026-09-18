@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Bookmark, Copy, Check, ArrowLeft, Share2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Bookmark, Copy, Check, ArrowLeft, Share2, RotateCcw } from 'lucide-react';
 import { Dhikr, PageType } from '../../types';
 import { DhikrCounter } from '../common/DhikrCounter';
 import { formatDhikrForSharing, copyToClipboard } from '../../utils/clipboard';
@@ -124,18 +125,47 @@ export const DailyDhikr: React.FC<DailyDhikrProps> = ({
             )}
           </div>
 
-          {/* Interactive Counter */}
+          {/* Interactive Counter & Direct Action */}
           <div className="flex flex-col items-center justify-center shrink-0 pt-2 sm:pt-0">
-            <DhikrCounter
-              current={count}
-              target={dhikr.count}
-              onIncrement={onIncrement}
-              onReset={onReset}
-              size="large"
-            />
-            <span className="text-[10px] text-stone-400 dark:text-night-muted mt-1.5 font-sans">
-              اضغط للتسبيح
-            </span>
+            {dhikr.count === 1 ? (
+              count >= 1 ? (
+                <div className="flex flex-col items-center gap-1.5">
+                  <span className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold shadow-2xs">
+                    <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <span>تمت القراءة</span>
+                  </span>
+                  <button
+                    onClick={onReset}
+                    className="flex items-center gap-1 text-[11px] text-stone-400 hover:text-islamic-800 dark:hover:text-gold-400 pt-1 transition-colors"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>إعادة</span>
+                  </button>
+                </div>
+              ) : (
+                <motion.button
+                  whileTap={{ scale: 0.94 }}
+                  onClick={onIncrement}
+                  className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-islamic-800 dark:bg-gold-400 text-sand-50 dark:text-islamic-950 text-sm font-semibold hover:bg-islamic-900 dark:hover:bg-gold-300 transition-all shadow-sm active:scale-95 cursor-pointer"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>تمت القراءة</span>
+                </motion.button>
+              )
+            ) : (
+              <>
+                <DhikrCounter
+                  current={count}
+                  target={dhikr.count}
+                  onIncrement={onIncrement}
+                  onReset={onReset}
+                  size="large"
+                />
+                <span className="text-[10px] text-stone-400 dark:text-night-muted mt-1.5 font-sans">
+                  اضغط للتسبيح ({count}/{dhikr.count})
+                </span>
+              </>
+            )}
           </div>
         </div>
 

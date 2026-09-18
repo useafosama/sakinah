@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bookmark, Copy, Check, Info, ChevronDown, ChevronUp, Share2 } from 'lucide-react';
+import { Bookmark, Copy, Check, Info, ChevronDown, ChevronUp, Share2, RotateCcw } from 'lucide-react';
 import { Dhikr, ReadingSettings } from '../../types';
 import { DhikrCounter } from '../common/DhikrCounter';
 import { formatDhikrForSharing, copyToClipboard } from '../../utils/clipboard';
@@ -56,6 +56,12 @@ export const DhikrCard: React.FC<DhikrCardProps> = ({
     }
   };
 
+  const handleCardClick = () => {
+    if (!isCompleted) {
+      onIncrement();
+    }
+  };
+
   return (
     <motion.div
       id={`dhikr-${dhikr.id}`}
@@ -63,13 +69,11 @@ export const DhikrCard: React.FC<DhikrCardProps> = ({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.96 }}
-      onClick={() => {
-        if (!isCompleted) onIncrement();
-      }}
-      className={`relative w-full bg-white dark:bg-night-850 rounded-2xl sm:rounded-3xl p-4 sm:p-5.5 border transition-all duration-200 cursor-pointer select-none ${
+      onClick={handleCardClick}
+      className={`relative w-full bg-white dark:bg-night-850 rounded-2xl sm:rounded-3xl p-4 sm:p-5.5 border transition-all duration-200 select-none ${
         isCompleted
-          ? 'border-emerald-200/80 dark:border-emerald-900/60 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-2xs'
-          : 'border-sand-300/70 dark:border-night-border shadow-card hover:shadow-card-hover hover:border-sand-400/80 dark:hover:border-night-muted/40'
+          ? 'border-emerald-300/80 dark:border-emerald-800/60 bg-emerald-50/25 dark:bg-emerald-950/20 shadow-2xs'
+          : 'border-sand-300/70 dark:border-night-border shadow-card hover:shadow-card-hover hover:border-sand-400/80 dark:hover:border-night-muted/40 cursor-pointer'
       }`}
     >
       {/* Top Bar */}
@@ -84,7 +88,7 @@ export const DhikrCard: React.FC<DhikrCardProps> = ({
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
           {onOpenShare && (
             <button
               onClick={handleShare}
@@ -144,12 +148,9 @@ export const DhikrCard: React.FC<DhikrCardProps> = ({
 
       {/* Virtue / Reward toggle & view */}
       {dhikr.virtue && settings.showVirtue && (
-        <div className="mt-3 pt-2.5 border-t border-sand-100 dark:border-night-border">
+        <div className="mt-3 pt-2.5 border-t border-sand-100 dark:border-night-border" onClick={(e) => e.stopPropagation()}>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowVirtueDetails(!showVirtueDetails);
-            }}
+            onClick={() => setShowVirtueDetails(!showVirtueDetails)}
             className="flex items-center gap-1 text-[11px] text-gold-600 dark:text-gold-400 hover:text-gold-700 font-medium focus:outline-none"
           >
             <Info className="w-3 h-3" />
@@ -174,8 +175,9 @@ export const DhikrCard: React.FC<DhikrCardProps> = ({
         </div>
       )}
 
-      {/* Bottom Counter & Reference footer */}
-      <div className="mt-4 pt-3 border-t border-sand-100 dark:border-night-border flex items-center justify-between gap-3">
+      {/* Bottom Counter & Clear Action Bar */}
+      <div className="mt-4 pt-3 border-t border-sand-100 dark:border-night-border flex flex-wrap items-center justify-between gap-3" onClick={(e) => e.stopPropagation()}>
+        {/* Source / Reference citation */}
         {(dhikr.source || dhikr.reference) ? (
           <div className="text-[11px] text-stone-400 dark:text-night-muted">
             <span>المصدر: </span>
@@ -185,15 +187,60 @@ export const DhikrCard: React.FC<DhikrCardProps> = ({
           <div />
         )}
 
-        {/* Counter Button */}
-        <div className="mr-auto">
-          <DhikrCounter
-            current={count}
-            target={dhikr.count}
-            onIncrement={onIncrement}
-            onReset={onReset}
-            size="normal"
-          />
+        {/* Action Button & Counter Area */}
+        <div className="mr-auto flex items-center gap-2">
+          {dhikr.count === 1 ? (
+            /* Single Count: Clear Big "تمت القراءة" Button */
+            isCompleted ? (
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold shadow-2xs">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>تمت القراءة</span>
+                </span>
+                <button
+                  onClick={onReset}
+                  className="p-1.5 rounded-lg text-stone-400 dark:text-night-muted hover:text-islamic-800 dark:hover:text-gold-400 hover:bg-sand-100 dark:hover:bg-night-800 transition-colors"
+                  title="إعادة القراءة"
+                  aria-label="إعادة القراءة"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={onIncrement}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-islamic-800 dark:bg-gold-400 text-sand-50 dark:text-islamic-950 text-xs font-semibold hover:bg-islamic-900 dark:hover:bg-gold-300 transition-all shadow-2xs cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>تمت القراءة</span>
+              </motion.button>
+            )
+          ) : (
+            /* Multi-Count: Ergonomic Tap Button + Circular Counter */
+            <div className="flex items-center gap-2">
+              {!isCompleted && (
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onIncrement}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-islamic-800 dark:bg-gold-400 text-sand-50 dark:text-islamic-950 text-xs font-semibold hover:bg-islamic-900 dark:hover:bg-gold-300 transition-all shadow-2xs cursor-pointer"
+                >
+                  <span>تسبيح</span>
+                  <span className="text-[11px] opacity-90 font-sans">
+                    ({count}/{dhikr.count})
+                  </span>
+                </motion.button>
+              )}
+
+              <DhikrCounter
+                current={count}
+                target={dhikr.count}
+                onIncrement={onIncrement}
+                onReset={onReset}
+                size="normal"
+              />
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
