@@ -6,6 +6,7 @@ import { HomeBanner } from './components/home/HomeBanner';
 import { DailyWird } from './components/home/DailyWird';
 import { HeroVerse } from './components/home/HeroVerse';
 import { DailyDhikr } from './components/home/DailyDhikr';
+import { DailyMessageCard } from './components/home/DailyMessageCard';
 import { CategoryGrid } from './components/home/CategoryGrid';
 import { HadithSpotlight } from './components/home/HadithSpotlight';
 import { SuggestedVideos } from './components/home/SuggestedVideos';
@@ -22,7 +23,7 @@ import { PWAInstallModal } from './components/common/PWAInstallModal';
 import { PWAInstallBanner } from './components/common/PWAInstallBanner';
 import { ToastProvider } from './components/common/Toast';
 
-import { PageType, AdhkarCategory, HadithTopic, Dhikr, Hadith } from './types';
+import { PageType, AdhkarCategory, HadithTopic, Dhikr, Hadith, DailyMessage } from './types';
 import { useFavorites } from './hooks/useFavorites';
 import { useDhikrProgress } from './hooks/useDhikrProgress';
 import { useReadingSettings } from './hooks/useReadingSettings';
@@ -33,10 +34,12 @@ import { usePWAInstall } from './hooks/usePWAInstall';
 import adhkarDataRaw from './data/adhkar.json';
 import hadithsDataRaw from './data/hadiths.json';
 import versesDataRaw from './data/verses.json';
+import dailyMessagesDataRaw from './data/dailyMessages.json';
 
 const adhkarData = adhkarDataRaw as Dhikr[];
 const hadithsData = hadithsDataRaw as Hadith[];
 const versesData = versesDataRaw;
+const dailyMessagesData = dailyMessagesDataRaw as DailyMessage[];
 
 export function AppContent() {
   const [currentPage, setCurrentPage] = useState<PageType>('home');
@@ -122,6 +125,9 @@ export function AppContent() {
             <div className="space-y-3.5 sm:space-y-4.5">
               {/* Featured Brand Hero Banner */}
               <HomeBanner onNavigate={handleNavigate} />
+
+              {/* Daily Spiritual Message / Reminder */}
+              <DailyMessageCard messages={dailyMessagesData} />
 
               {/* Daily Wird Section with Progress & Continue */}
               <DailyWird

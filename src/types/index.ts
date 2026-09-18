@@ -56,3 +56,12 @@ export interface LastPosition {
   dhikrId: string;
   updatedAt: number;
 }
+
+export interface DailyMessage {
+  id: string;
+  type: 'quran' | 'hadith' | 'reminder';
+  text: string;
+  source: string;
+  theme: string;
+}
+
