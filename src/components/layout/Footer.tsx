@@ -52,6 +52,13 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             </span>
           </p>
         </div>
+
+        {/* Founders Dua Reminder */}
+        <div className="mt-3.5 pt-3 border-t border-sand-200/40 dark:border-night-border/40">
+          <p className="font-arabic-text text-xs sm:text-[13px] text-stone-500 dark:text-night-muted font-normal tracking-wide">
+            لا تنسوا الدعاء لمؤسسي موقع سكينة 🤍
+          </p>
+        </div>
       </div>
     </footer>
   );
