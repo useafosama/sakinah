@@ -26,9 +26,10 @@ jobs:
       - name: Build Website (npm run build)
         run: npm run build
 
-      - name: Deploy to Cloudflare Pages (sakinah-3ps)
+      - name: Deploy to Cloudflare Pages (sakinah)
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=sakinah-3ps --branch=main
+          command: pages deploy dist --project-name=sakinah --branch=main
+
