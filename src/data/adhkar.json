@@ -1,222 +1,227 @@
 [
   {
-    "id": "m-1",
+    "id": "morning-1",
     "category": "morning",
-    "title": "آية الكرسي",
-    "arabic": "اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ ۚ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ ۚ لَّهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ ۗ مَن ذَا الَّذِي يَشْفَعُ عِندَهُ إِلَّا بِإِذْنِهِ ۚ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ ۖ وَلَا يُحِيطُونَ بِشَيْءٍ مِّنْ عِلْمِهِ إِلَّا بِمَا شَاءَ ۚ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ ۖ وَلَا يَئُودُهُ حِفْظُهُمَا ۚ وَهُوَ الْعَلِيُّ الْعَظِيمُ",
-    "transliteration": "Allahu la ilaha illa Huwa, Al-Hayyul-Qayyum. La ta'khudhuhu sinatun wa la nawm...",
-    "translation": "Allah! There is no deity except Him, the Ever-Living, the Sustainer of all existence. Neither drowsiness overtakes Him nor sleep...",
-    "count": 1,
-    "virtue": "من قرأها حين يصبح أجير من الجن حتى يمسي، ومن قرأها حين يمسي أجير منهم حتى يصبح.",
-    "reference": "أخرجه الحاكم، وصححه الألباني في صحيح الترغيب (655)"
+    "title": "سورة الإخلاص",
+    "arabic": "قل هو الله أحد، الله الصمد، لم يلد ولم يولد، ولم يكن له كفواً أحد.",
+    "count": 3
   },
   {
-    "id": "m-2",
+    "id": "morning-2",
     "category": "morning",
-    "title": "سيد الاستغفار",
-    "arabic": "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ، وَأَنَا عَلَى عَهْدِكَ وَوَعْدِكَ مَا اسْتَطَعْتُ، أَعُوذُ بِكَ مِنْ شَرِّ مَا صَنَعْتُ، أَبُوءُ لَكَ بِنِعْمَتِكَ عَلَيَّ، وَأَبُوءُ بِذَنْبِي فَاغْفِرْ لِي فَإِنَّهُ لَا يَغْفِرُ الذُّنُوبَ إِلَّا أَنْتَ.",
-    "transliteration": "Allahumma Anta Rabbi la ilaha illa Ant, khalaqtani wa ana 'abduk, wa ana 'ala 'ahdika wa wa'dika mastata't...",
-    "translation": "O Allah, You are my Lord, there is no god but You. You created me and I am Your servant, and I abide by Your covenant and promise as best I can...",
-    "count": 1,
-    "virtue": "من قالها موقناً بها حين يمسي فمات من ليلته دخل الجنة، وكذلك حين يصبح.",
-    "reference": "صحيح البخاري: 6306"
+    "title": "سورة الفلق",
+    "arabic": "قل أعوذ برب الفلق، من شر ما خلق، ومن شر غاسق إذا وقب، ومن شر النفاثات في العقد، ومن شر حاسد إذا حسد.",
+    "count": 3
   },
   {
-    "id": "m-3",
+    "id": "morning-3",
+    "category": "morning",
+    "title": "سورة الناس",
+    "arabic": "قل أعوذ برب الناس، ملك الناس، إله الناس، من شر الوسواس الخناس، الذي يوسوس في صدور الناس، من الجنة والناس.",
+    "count": 3
+  },
+  {
+    "id": "morning-4",
     "category": "morning",
     "title": "أصبحنا وأصبح الملك لله",
-    "arabic": "أَصْبَحْنَا وَأَصْبَحَ الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذَا الْيَوْمِ وَخَيْرَ مَا بَعْدَهُ، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذَا الْيَوْمِ وَشَرِّ مَا بَعْدَهُ، رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَسُوءِ الْكِبَرِ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ.",
-    "transliteration": "Asbahna wa-asbahal-mulku lillah, wal-hamdu lillah, la ilaha illallahu wahdahu la shareeka lah...",
-    "translation": "We have entered the morning and kingdom belongs to Allah, and all praise is due to Allah. None has the right to be worshipped except Allah alone, without partner...",
-    "count": 1,
-    "virtue": "من أذكار الصباح الجامعة لحفظ العبد من شر اليوم وما بعده وعذاب القبر والنار.",
-    "reference": "صحيح مسلم: 2723"
+    "arabic": "أصبحنا وأصبح الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير. رب أسألك خير ما في هذا اليوم وخير ما بعده، وأعوذ بك من شر ما في هذا اليوم وشر ما بعده. رب أعوذ بك من الكسل وسوء الكبر، رب أعوذ بك من عذاب في النار وعذاب في القبر.",
+    "count": 1
   },
   {
-    "id": "m-4",
+    "id": "morning-5",
     "category": "morning",
-    "title": "الاستعاذة بكلمات الله التامات",
-    "arabic": "بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ.",
-    "transliteration": "Bismillahil-ladhi la yadurru ma'as-mihi shay'un fil-ardi wa la fis-sama'i wa Huwas-Sami'ul-'Aleem.",
-    "translation": "In the Name of Allah with Whose Name nothing can cause harm in the earth nor in the heavens, and He is the All-Hearing, the All-Knowing.",
-    "count": 3,
-    "virtue": "من قالها ثلاثاً إذا أصبح وثلاثاً إذا أمسى لم يضره شيء.",
-    "reference": "أخرجه أبو داود والترمذي، وقال حسن صحيح"
+    "title": "اللهم بك أصبحنا",
+    "arabic": "اللهم بك أصبحنا، وبك أمسينا، وبك نحيا، وبك نموت، وإليك النشور.",
+    "count": 1
   },
   {
-    "id": "m-5",
+    "id": "morning-6",
     "category": "morning",
-    "title": "الرضا بالله رباً",
-    "arabic": "رَضِيتُ بِاللَّهِ رَبّاً، وَبِالْإِسْلَامِ دِيناً، وَبِمُحَمَّدٍ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ نَبِيّاً.",
-    "transliteration": "Radeetu billahi Rabba, wa bil-Islami deena, wa bi Muhammadin sallallahu 'alayhi wa sallama Nabiyya.",
-    "translation": "I am pleased with Allah as my Lord, with Islam as my religion, and with Muhammad (peace and blessings of Allah be upon him) as my Prophet.",
-    "count": 3,
-    "virtue": "من قالها حين يصبح وحين يمسي ثلاثاً كان حقاً على الله أن يرضيه يوم القيامة.",
-    "reference": "أخرجه أحمد وأبو داود والترمذي وصححه الألباني"
+    "title": "سيد الاستغفار",
+    "arabic": "اللهم أنت ربي لا إله إلا أنت، خلقتني وأنا عبدك، وأنا على عهدك ووعدك ما استطعت، أعوذ بك من شر ما صنعت، أبوء لك بنعمتك علي، وأبوء بذنبي فاغفر لي، فإنه لا يغفر الذنوب إلا أنت.",
+    "count": 1
   },
   {
-    "id": "m-6",
+    "id": "morning-7",
     "category": "morning",
-    "title": "يا حي يا قيوم",
-    "arabic": "يَا حَيُّ يَا قَيُّومُ بِرَحْمَتِكَ أَسْتَغِيثُ، أَصْلِحْ لِي شَأْنِي كُلَّهُ، وَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ.",
-    "transliteration": "Ya Hayyu Ya Qayyum, bi-rahmatika astagheeth, aslih li sha'ni kullahu, wa la takilni ila nafsi tarfata 'ayn.",
-    "translation": "O Ever-Living, O Sustainer, in Your Mercy I seek relief. Rectify all my affairs and do not leave me to myself even for the blink of an eye.",
-    "count": 1,
-    "virtue": "دعاء النبي ﷺ لابنته فاطمة رضي الله عنها بالاستعانة بالله في كل شأن.",
-    "reference": "رواه النسائي والحاكم وصححه الألباني"
+    "title": "اللهم إني أصبحت أشهدك",
+    "arabic": "اللهم إني أصبحت أشهدك، وأشهد حملة عرشك، وملائكتك، وجميع خلقك، أنك أنت الله لا إله إلا أنت وحدك لا شريك لك، وأن محمداً عبدك ورسولك.",
+    "count": 4
   },
   {
-    "id": "m-7",
-    "category": "morning",
-    "title": "العفو والعافية",
-    "arabic": "اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي الدُّنْيَا وَالْآخِرَةِ، اللَّهُمَّ إِنِّي أَسْأَلُكَ الْعَفْوَ وَالْعَافِيَةَ فِي دِينِي وَدُنْيَايَ وَأَهْلِي وَمَالِي، اللَّهُمَّ اسْتُرْ عَوْرَاتِي، وَآمِنْ رَوْعَاتِي، اللَّهُمَّ احْفَظْنِي مِنْ بَيْنِ يَدَيَّ، وَمِنْ خَلْفِي، وَعَنْ يَمِينِي، وَعَنْ شِمَالِي، وَمِنْ فَوْقِي، وَأَعُوذُ بِعَظَمَتِكَ أَنْ أُغْتَالَ مِنْ تَحْتِي.",
-    "transliteration": "Allahumma inni as'alukal-'afwa wal-'afiyah fid-dunya wal-akhirah...",
-    "translation": "O Allah, I ask You for forgiveness and well-being in this world and the Hereafter. O Allah, safeguard me from before me and behind me, on my right and on my left, and from above me...",
-    "count": 1,
-    "virtue": "لم يكن النبي ﷺ يدع هؤلاء الكلمات حين يمسي وحين يصبح.",
-    "reference": "رواه أبو داود وابن ماجه وصححه الحاكم"
+    "id": "evening-1",
+    "category": "evening",
+    "title": "آية الكرسي",
+    "arabic": "الله لا إله إلا هو الحي القيوم، لا تأخذه سنة ولا نوم، له ما في السماوات وما في الأرض، من ذا الذي يشفع عنده إلا بإذنه، يعلم ما بين أيديهم وما خلفهم، ولا يحيطون بشيء من علمه إلا بما شاء، وسع كرسيه السماوات والأرض، ولا يؤوده حفظهما وهو العلي العظيم.",
+    "count": 3
   },
   {
-    "id": "m-8",
-    "category": "morning",
-    "title": "التسبيح والتحميد مائة مرة",
-    "arabic": "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ.",
-    "transliteration": "Subhanallahi wa bihamdih.",
-    "translation": "Glory be to Allah and His is the praise.",
-    "count": 100,
-    "virtue": "من قالها مائة مرة حين يصبح وحين يمسي لم يأت أحد يوم القيامة بأفضل مما جاء به إلا أحد قال مثل ما قال أو زاد عليه.",
-    "reference": "صحيح مسلم: 2692"
+    "id": "evening-2",
+    "category": "evening",
+    "title": "سورة الإخلاص",
+    "arabic": "قل هو الله أحد، الله الصمد، لم يلد ولم يولد، ولم يكن له كفواً أحد.",
+    "count": 3
   },
   {
-    "id": "e-1",
+    "id": "evening-3",
+    "category": "evening",
+    "title": "سورة الفلق",
+    "arabic": "قل أعوذ برب الفلق، من شر ما خلق، ومن شر غاسق إذا وقب، ومن شر النفاثات في العقد، ومن شر حاسد إذا حسد.",
+    "count": 3
+  },
+  {
+    "id": "evening-4",
+    "category": "evening",
+    "title": "سورة الناس",
+    "arabic": "قل أعوذ برب الناس، ملك الناس، إله الناس، من شر الوسواس الخناس، الذي يوسوس في صدور الناس، من الجنة والناس.",
+    "count": 3
+  },
+  {
+    "id": "evening-5",
     "category": "evening",
     "title": "أمسينا وأمسى الملك لله",
-    "arabic": "أَمْسَيْنَا وَأَمْسَى الْمُلْكُ لِلَّهِ، وَالْحَمْدُ لِلَّهِ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، رَبِّ أَسْأَلُكَ خَيْرَ مَا فِي هَذِهِ اللَّيْلَةِ وَخَيْرَ مَا بَعْدَهَا، وَأَعُوذُ بِكَ مِنْ شَرِّ مَا فِي هَذِهِ اللَّيْلَةِ وَشَرِّ مَا بَعْدَهَا، رَبِّ أَعُوذُ بِكَ مِنَ الْكَسَلِ وَسُوءِ الْكِبَرِ، رَبِّ أَعُوذُ بِكَ مِنْ عَذَابٍ فِي النَّارِ وَعَذَابٍ فِي الْقَبْرِ.",
-    "transliteration": "Amsayna wa-amsal-mulku lillah, wal-hamdu lillah, la ilaha illallahu wahdahu la shareeka lah...",
-    "translation": "We have reached the evening and the dominion belongs to Allah, and all praise is due to Allah. There is no god but Allah alone without partner...",
-    "count": 1,
-    "virtue": "دعاء المساء الشامل للتوكل واللجوء إلى الله من شرور الليلة وفتن الدنيا والآخرة.",
-    "reference": "صحيح مسلم: 2723"
+    "arabic": "أمسينا وأمسى الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له، له الملك وله الحمد، وهو على كل شيء قدير. رب أسألك خير ما في هذه الليلة وخير ما بعدها، وأعوذ بك من شر ما في هذه الليلة وشر ما بعدها. رب أعوذ بك من الكسل وسوء الكبر، رب أعوذ بك من عذاب في النار وعذاب في القبر.",
+    "count": 1
   },
   {
-    "id": "e-2",
+    "id": "evening-6",
     "category": "evening",
-    "title": "الاستعاذة بكلمات الله التامات من شر ما خلق",
-    "arabic": "أَعُوذُ بِكَلِمَاتِ اللَّهِ التَّامَّاتِ مِنْ شَرِّ مَا خَلَقَ.",
-    "transliteration": "A'oodhu bi-kalimatil-lahit-tammati min sharri ma khalaq.",
-    "translation": "I seek refuge in the perfect words of Allah from the evil of that which He has created.",
-    "count": 3,
-    "virtue": "من قالها حين يمسي ثلاث مرات لم تضره حمة (سمّ ولدغة) تلك الليلة.",
-    "reference": "صحيح مسلم: 2709"
+    "title": "سيد الاستغفار",
+    "arabic": "اللهم أنت ربي لا إله إلا أنت، خلقتني وأنا عبدك، وأنا على عهدك ووعدك ما استطعت، أعوذ بك من شر ما صنعت، أبوء لك بنعمتك علي، وأبوء بذنبي فاغفر لي، فإنه لا يغفر الذنوب إلا أنت.",
+    "count": 1
   },
   {
-    "id": "e-3",
+    "id": "evening-7",
     "category": "evening",
-    "title": "اللهم بك أمسينا",
-    "arabic": "اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ.",
-    "transliteration": "Allahumma bika amsayna, wa bika asbahna, wa bika nahya, wa bika namoot, wa ilaykal-maseer.",
-    "translation": "O Allah, by You we enter the evening and by You we enter the morning, by You we live and by You we die, and to You is our final return.",
-    "count": 1,
-    "virtue": "إقرار دائم بربوبية الله وتدبيره في تقلب الليل والنهار.",
-    "reference": "رواه الترمذي وقال حديث حسن"
+    "title": "دعاء العفو والعافية",
+    "arabic": "اللهم إني أسألك العفو والعافية في الدنيا والآخرة، اللهم إني أسألك العفو والعافية في ديني ودنياي وأهلي ومالي. اللهم استر عوراتي وآمن روعاتي. اللهم احفظني من بين يدي ومن خلفي وعن يميني وعن شمالي ومن فوقي، وأعوذ بعظمتك أن أغتال من تحتي.",
+    "count": 1
   },
   {
-    "id": "p-1",
-    "category": "after_prayer",
-    "title": "الاستغفار وطلب السلام",
-    "arabic": "أَسْتَغْفِرُ اللَّهَ، أَسْتَغْفِرُ اللَّهَ، أَسْتَغْفِرُ اللَّهَ. اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ، تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالإِكْرَامِ.",
-    "transliteration": "Astaghfirullah (3x), Allahumma Antas-Salam wa minkas-salam, tabarakta ya Dhal-Jalali wal-Ikram.",
-    "translation": "I ask Allah for forgiveness (3x). O Allah, You are Peace and from You comes peace. Blessed are You, O Owner of majesty and honor.",
-    "count": 1,
-    "virtue": "كان رسول الله ﷺ إذا انصرف من صلاته استغفر ثلاثاً وقال هذا الدعاء.",
-    "reference": "صحيح مسلم: 591"
+    "id": "evening-8",
+    "category": "evening",
+    "title": "اللهم إني أمسيت أشهدك",
+    "arabic": "اللهم إني أمسيت أشهدك، وأشهد حملة عرشك، وملائكتك، وجميع خلقك، أنك أنت الله لا إله إلا أنت وحدك لا شريك لك، وأن محمداً عبدك ورسولك.",
+    "count": 4
   },
   {
-    "id": "p-2",
-    "category": "after_prayer",
-    "title": "التهليل والتوحيد دبر الصلاة",
-    "arabic": "لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ، اللَّهُمَّ لَا مَانِعَ لِمَا أَعْطَيْتَ، وَلَا مُعْطِيَ لِمَا مَنَعْتَ، وَلَا يَنْفَعُ ذَا الْجَدِّ مِنْكَ الْجَدُّ.",
-    "transliteration": "La ilaha illallahu wahdahu la shareeka lahu, lahul-mulku wa lahul-hamdu wa huwa 'ala kulli shay'in qadeer...",
-    "translation": "None has the right to be worshipped except Allah alone, without partner. To Him belongs the dominion and praise. O Allah, none can prevent what You give, and none can give what You withhold...",
-    "count": 1,
-    "virtue": "كان النبي ﷺ يقوله في دبر كل صلاة مكتوبة حين يسلّم.",
-    "reference": "صحيح البخاري: 844"
+    "id": "evening-9",
+    "category": "evening",
+    "title": "رضيت بالله رباً",
+    "arabic": "رضيت بالله رباً، وبالإسلام ديناً، وبمحمد صلى الله عليه وسلم نبياً.",
+    "count": 3
   },
   {
-    "id": "p-3",
-    "category": "after_prayer",
-    "title": "تسبيح وتحميد وتكبير دبر كل صلاة",
-    "arabic": "سُبْحَانَ اللَّهِ (33) ، الْحَمْدُ لِلَّهِ (33) ، اللَّهُ أَكْبَرُ (33) ، لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ.",
-    "transliteration": "SubhanAllah (33x), Alhamdulillah (33x), Allahu Akbar (33x), La ilaha illallah wahdahu...",
-    "translation": "Glory be to Allah (33x), Praise be to Allah (33x), Allah is the Greatest (33x), and seal with: None has the right to be worshipped except Allah alone...",
-    "count": 33,
-    "virtue": "من سبح الله في دبر كل صلاة ثلاثاً وثلاثين، وحمد ثلاثاً وثلاثين، وكبر ثلاثاً وثلاثين، وختم بالتوحيد غُفرت خطاياه وإن كانت مثل زبد البحر.",
-    "reference": "صحيح مسلم: 597"
+    "id": "evening-10",
+    "category": "evening",
+    "title": "بسم الله الذي لا يضر مع اسمه شيء",
+    "arabic": "بسم الله الذي لا يضر مع اسمه شيء في الأرض ولا في السماء، وهو السميع العليم.",
+    "count": 3
   },
   {
-    "id": "g-1",
-    "category": "general",
-    "title": "الكلمتان الخفيفتان",
-    "arabic": "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، سُبْحَانَ اللَّهِ الْعَظِيمِ.",
-    "transliteration": "Subhanallahi wa bihamdihi, Subhanallahil-'Azeem.",
-    "translation": "Glory be to Allah and His is the praise, Glory be to Allah the Almighty.",
-    "count": 100,
-    "virtue": "كلمتان خفيفتان على اللسان، ثقيلتان في الميزان، حبيبتان إلى الرحمن.",
-    "reference": "صحيح البخاري: 6406"
+    "id": "evening-11",
+    "category": "evening",
+    "title": "الاستعاذة بكلمات الله التامات",
+    "arabic": "أعوذ بكلمات الله التامات من شر ما خلق.",
+    "count": 3
   },
   {
-    "id": "g-2",
-    "category": "general",
-    "title": "كنز من كنوز الجنة",
-    "arabic": "لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ.",
-    "transliteration": "La hawla wa la quwwata illa billah.",
-    "translation": "There is no power nor strength except through Allah.",
-    "count": 10,
-    "virtue": "قال النبي ﷺ لأبي موسى الأشعري: «ألا أدلك على كنز من كنوز الجنة؟ فقلت: بلى، قال: لا حول ولا قوة إلا بالله».",
-    "reference": "صحيح البخاري: 6384"
-  },
-  {
-    "id": "g-3",
-    "category": "general",
+    "id": "evening-12",
+    "category": "evening",
     "title": "الصلاة على النبي ﷺ",
-    "arabic": "اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ.",
-    "transliteration": "Allahumma salli wa sallim 'ala Nabiyyina Muhammad.",
-    "translation": "O Allah, send Your peace and blessings upon our Prophet Muhammad.",
-    "count": 10,
-    "virtue": "«من صلى عليّ صلاة صلى الله عليه بها عشراً» و «من صلى عليّ حين يصبح عشراً وحين يمسي عشراً أدركته شفاعتي يوم القيامة».",
-    "reference": "صحيح مسلم: 408، والطبراني"
+    "arabic": "اللهم صل وسلم وبارك على نبينا محمد.",
+    "count": 10
   },
   {
-    "id": "g-4",
-    "category": "general",
-    "title": "أحب الكلام إلى الله",
-    "arabic": "سُبْحَانَ اللَّهِ، وَالْحَمْدُ لِلَّهِ، وَلَا إِلَهَ إِلَّا اللَّهُ، وَاللَّهُ أَكْبَرُ.",
-    "transliteration": "SubhanAllah, wal-Hamdulillah, wa la ilaha illallah, Wallahu Akbar.",
-    "translation": "Glory be to Allah, and praise be to Allah, and there is no deity except Allah, and Allah is the Greatest.",
-    "count": 10,
-    "virtue": "«أحب الكلام إلى الله أربع: سبحان الله، والحمد لله، ولا إله إلا الله، والله أكبر، لا يضرك بأيهن بدأت».",
-    "reference": "صحيح مسلم: 2137"
+    "id": "sleep-1",
+    "category": "sleep",
+    "title": "آية الكرسي",
+    "arabic": "الله لا إله إلا هو الحي القيوم، لا تأخذه سنة ولا نوم، له ما في السماوات وما في الأرض، من ذا الذي يشفع عنده إلا بإذنه، يعلم ما بين أيديهم وما خلفهم، ولا يحيطون بشيء من علمه إلا بما شاء، وسع كرسيه السماوات والأرض، ولا يؤوده حفظهما وهو العلي العظيم.",
+    "count": 1
   },
   {
-    "id": "s-1",
+    "id": "sleep-2",
+    "category": "sleep",
+    "title": "خواتيم سورة البقرة",
+    "arabic": "آمن الرسول بما أنزل إليه من ربه والمؤمنون كل آمن بالله وملائكته وكتبه ورسله لا نفرق بين أحد من رسله وقالوا سمعنا وأطعنا غفرانك ربنا وإليك المصير. لا يكلف الله نفساً إلا وسعها لها ما كسبت وعليها ما اكتسبت ربنا لا تؤاخذنا إن نسينا أو أخطأنا ربنا ولا تحمل علينا إصراً كما حملته على الذين من قبلنا ربنا ولا تحملنا ما لا طاقة لنا به واعف عنا واغفر لنا وارحمنا أنت مولانا فانصرنا على القوم الكافرين.",
+    "source": "سورة البقرة، الآيتان 285-286",
+    "count": 1
+  },
+  {
+    "id": "sleep-3",
+    "category": "sleep",
+    "title": "المعوذات",
+    "arabic": "قل هو الله أحد\nقل أعوذ برب الفلق\nقل أعوذ برب الناس",
+    "count": 3
+  },
+  {
+    "id": "sleep-4",
+    "category": "sleep",
+    "title": "اللهم باسمك أحيا وأموت",
+    "arabic": "اللهم باسمك أحيا وأموت.",
+    "count": 1
+  },
+  {
+    "id": "sleep-5",
     "category": "sleep",
     "title": "باسمك ربي وضعت جنبي",
-    "arabic": "بِاسْمِكَ رَبِّي وَضَعْتُ جَنْبِي، وَبِكَ أَرْفَعُهُ، فَإِنْ أَمْسَكْتَ نَفْسِي فَارْحَمْهَا، وَإِنْ أَرْسَلْتَهَا فَاحْفَظْهَا بِمَا تَحْفَظُ بِهِ عِبَادَكَ الصَّالِحِينَ.",
-    "transliteration": "Bismika Rabbi wada'tu janbi, wa bika arfa'uh...",
-    "translation": "In Your name my Lord, I lie down, and by Your favor I rise. If You take my soul, have mercy upon it, and if You send it back, protect it as You protect Your righteous servants.",
-    "count": 1,
-    "virtue": "دعاء النوم الشامل لحفظ النفس والروح في نومها ويقظتها.",
-    "reference": "صحيح البخاري: 6320"
+    "arabic": "اللهم باسمك ربي وضعت جنبي وبك أرفعه، إن أمسكت نفسي فارحمها، وإن أرسلتها فاحفظها بما تحفظ به عبادك الصالحين.",
+    "count": 1
   },
   {
-    "id": "s-2",
+    "id": "sleep-6",
     "category": "sleep",
-    "title": "تسبيح فاطمة عند المنام",
-    "arabic": "سُبْحَانَ اللَّهِ (33) ، الْحَمْدُ لِلَّهِ (33) ، اللَّهُ أَكْبَرُ (34).",
-    "transliteration": "SubhanAllah (33x), Alhamdulillah (33x), Allahu Akbar (34x).",
-    "translation": "Glory be to Allah (33x), Praise be to Allah (33x), Allah is the Greatest (34x).",
-    "count": 33,
-    "virtue": "علمها النبي ﷺ لعلي وفاطمة رضي الله عنهما حين طلبا خادماً، وقال: «هو خير لكما من خادم».",
-    "reference": "صحيح البخاري: 3705"
+    "title": "بسم الله الذي لا يضر مع اسمه شيء",
+    "arabic": "بسم الله الذي لا يضر مع اسمه شيء في الأرض، ولا في السماء، وهو السميع العليم.",
+    "count": 3
+  },
+  {
+    "id": "sleep-7",
+    "category": "sleep",
+    "title": "الاستعاذة بكلمات الله التامات",
+    "arabic": "أعوذ بكلمات الله التامات من شر ما خلق.",
+    "count": 3
+  },
+  {
+    "id": "sleep-8",
+    "category": "sleep",
+    "title": "سبحان الله",
+    "arabic": "سبحان الله",
+    "count": 33
+  },
+  {
+    "id": "sleep-9",
+    "category": "sleep",
+    "title": "الحمد لله",
+    "arabic": "الحمد لله",
+    "count": 33
+  },
+  {
+    "id": "sleep-10",
+    "category": "sleep",
+    "title": "الله أكبر",
+    "arabic": "الله أكبر",
+    "count": 34
+  },
+  {
+    "id": "sleep-11",
+    "category": "sleep",
+    "title": "اللهم فاطر السماوات والأرض",
+    "arabic": "اللهم فاطر السماوات والأرض عالم الغيب والشهادة، رب كل شيء ومليكه، أشهد أن لا إله إلا أنت، أعوذ بك من شر نفسي، ومن شر الشيطان وشركه، وأعوذ بك أن أقترف على نفسي سوءاً أو أجره إلى مسلم، اللهم أنت ربي لا إله إلا أنت، خلقتني وأنا عبدك، وأنا على عهدك ووعدك ما استطعت، أعوذ بك من شر ما صنعت، أبوء لك بنعمتك علي، وأبوء بذنبي فاغفر لي، فإنه لا يغفر الذنوب إلا أنت.",
+    "count": 1
+  },
+  {
+    "id": "sleep-12",
+    "category": "sleep",
+    "title": "قراءة سورة الملك",
+    "arabic": "قراءة سورة الملك",
+    "count": 1
+  },
+  {
+    "id": "sleep-13",
+    "category": "sleep",
+    "title": "دعاء النوم والتفويض",
+    "arabic": "اللهم أسلمت نفسي إليك، وفوضت أمري إليك، ووجهت وجهي إليك، وألجأت ظهري إليك، رغبة ورهبة إليك، لا ملجأ ولا منجى منك إلا إليك، آمنت بكتابك الذي أنزلت، ونبيك الذي أرسلت.",
+    "count": 1
   }
 ]

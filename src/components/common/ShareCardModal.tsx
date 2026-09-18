@@ -113,7 +113,7 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({
               {/* Footer Citation & Sakinah Watermark */}
               <div className="pt-3 border-t border-sand-100 dark:border-night-border flex items-center justify-between text-[11px] text-stone-400 dark:text-night-muted">
                 <span className="font-medium text-stone-500 dark:text-night-muted">
-                  {dhikr ? dhikr.reference : `${hadith?.book} (${hadith?.number})`}
+                  {dhikr ? (dhikr.source || dhikr.reference || (dhikr.count === 1 ? 'مرة واحدة' : `${dhikr.count} مرات`)) : `${hadith?.book} (${hadith?.number})`}
                 </span>
                 <span className="font-bold text-islamic-900 dark:text-gold-400 font-arabic-text">
                   سَكِينَة | Sakinah

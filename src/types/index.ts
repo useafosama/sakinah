@@ -8,10 +8,11 @@ export interface Dhikr {
   title: string;
   arabic: string;
   transliteration?: string;
-  translation: string;
+  translation?: string;
   count: number;
   virtue?: string;
-  reference: string;
+  reference?: string;
+  source?: string;
 }
 
 export type HadithTopic = 'all' | 'sincerity' | 'character' | 'remembrance' | 'patience' | 'knowledge' | 'compassion' | 'prayer';

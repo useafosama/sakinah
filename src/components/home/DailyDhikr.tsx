@@ -116,10 +116,12 @@ export const DailyDhikr: React.FC<DailyDhikrProps> = ({
               </div>
             )}
 
-            <div className="text-[11px] text-stone-400 dark:text-night-muted">
-              <span>المصدر: </span>
-              <span className="font-medium text-stone-500 dark:text-night-muted">{dhikr.reference}</span>
-            </div>
+            {(dhikr.source || dhikr.reference) && (
+              <div className="text-[11px] text-stone-400 dark:text-night-muted">
+                <span>المصدر: </span>
+                <span className="font-medium text-stone-500 dark:text-night-muted">{dhikr.source || dhikr.reference}</span>
+              </div>
+            )}
           </div>
 
           {/* Interactive Counter */}

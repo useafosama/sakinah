@@ -37,13 +37,13 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
       },
     },
     {
-      id: 'after_prayer',
-      title: 'أذكار بعد الصلاة',
-      desc: 'التسبيح والتهليل دبر المكتوبة',
-      icon: <Sparkles className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />,
-      bg: 'bg-white dark:bg-night-850 hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 border-sand-200/80 dark:border-night-border',
+      id: 'sleep',
+      title: 'أذكار النوم',
+      desc: 'راحة النفس وأدعية ما قبل المنام',
+      icon: <Bed className="w-4.5 h-4.5 text-stone-600 dark:text-night-muted" />,
+      bg: 'bg-white dark:bg-night-850 hover:bg-stone-50 dark:hover:bg-night-800 border-sand-200/80 dark:border-night-border',
       action: () => {
-        if (onSelectCategory) onSelectCategory('after_prayer');
+        if (onSelectCategory) onSelectCategory('sleep');
         onNavigate('adhkar');
       },
     },
@@ -64,15 +64,12 @@ export const CategoryGrid: React.FC<CategoryGridProps> = ({
       action: onOpenTasbeeh,
     },
     {
-      id: 'sleep',
-      title: 'أذكار النوم',
-      desc: 'راحة النفس وأدعية ما قبل المنام',
-      icon: <Bed className="w-4.5 h-4.5 text-stone-600 dark:text-night-muted" />,
-      bg: 'bg-white dark:bg-night-850 hover:bg-stone-50 dark:hover:bg-night-800 border-sand-200/80 dark:border-night-border',
-      action: () => {
-        if (onSelectCategory) onSelectCategory('sleep');
-        onNavigate('adhkar');
-      },
+      id: 'favorites',
+      title: 'المفضلة والورد',
+      desc: 'أذكارك وأحاديثك المحفوظة محلياً',
+      icon: <Sparkles className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />,
+      bg: 'bg-white dark:bg-night-850 hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 border-sand-200/80 dark:border-night-border',
+      action: () => onNavigate('favorites'),
     },
   ];
 

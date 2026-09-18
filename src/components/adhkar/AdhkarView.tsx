@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sun, Moon, Sparkles, Bed, Compass, RotateCcw, CheckCircle2, Search, BookOpenText } from 'lucide-react';
+import { Sun, Moon, Bed, RotateCcw, CheckCircle2, Search, BookOpenText } from 'lucide-react';
 import { Dhikr, AdhkarCategory, ReadingSettings, LastPosition } from '../../types';
 import { DhikrCard } from './DhikrCard';
 
@@ -42,8 +42,6 @@ export const AdhkarView: React.FC<AdhkarViewProps> = ({
   const categories: { id: AdhkarCategory; label: string; icon: React.ReactNode }[] = [
     { id: 'morning', label: 'أذكار الصباح', icon: <Sun className="w-3.5 h-3.5 text-amber-500" /> },
     { id: 'evening', label: 'أذكار المساء', icon: <Moon className="w-3.5 h-3.5 text-indigo-400" /> },
-    { id: 'after_prayer', label: 'بعد الصلاة', icon: <Sparkles className="w-3.5 h-3.5 text-emerald-600" /> },
-    { id: 'general', label: 'أذكار عامة', icon: <Compass className="w-3.5 h-3.5 text-gold-600" /> },
     { id: 'sleep', label: 'أذكار النوم', icon: <Bed className="w-3.5 h-3.5 text-stone-500" /> },
   ];
 

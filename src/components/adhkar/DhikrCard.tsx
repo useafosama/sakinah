@@ -79,7 +79,7 @@ export const DhikrCard: React.FC<DhikrCardProps> = ({
             {dhikr.title}
           </span>
           <span className="text-[11px] font-sans text-stone-400 dark:text-night-muted">
-            تكرار: {dhikr.count} {dhikr.count === 1 ? 'مرة' : 'مرات'}
+            {dhikr.count === 1 ? 'مرة واحدة' : `${dhikr.count} مرات`}
           </span>
         </div>
 
@@ -176,10 +176,14 @@ export const DhikrCard: React.FC<DhikrCardProps> = ({
 
       {/* Bottom Counter & Reference footer */}
       <div className="mt-4 pt-3 border-t border-sand-100 dark:border-night-border flex items-center justify-between gap-3">
-        <div className="text-[11px] text-stone-400 dark:text-night-muted">
-          <span>المصدر: </span>
-          <span className="font-medium text-stone-500 dark:text-night-muted">{dhikr.reference}</span>
-        </div>
+        {(dhikr.source || dhikr.reference) ? (
+          <div className="text-[11px] text-stone-400 dark:text-night-muted">
+            <span>المصدر: </span>
+            <span className="font-medium text-stone-500 dark:text-night-muted">{dhikr.source || dhikr.reference}</span>
+          </div>
+        ) : (
+          <div />
+        )}
 
         {/* Counter Button */}
         <div className="mr-auto">

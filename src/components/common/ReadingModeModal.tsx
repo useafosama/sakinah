@@ -180,7 +180,7 @@ export const ReadingModeModal: React.FC<ReadingModeModalProps> = ({
           </button>
 
           <span className="text-[11px] text-stone-400 dark:text-night-muted">
-            المصدر: {currentItem.reference}
+            {(currentItem.source || currentItem.reference) ? `المصدر: ${currentItem.source || currentItem.reference}` : (currentItem.count === 1 ? 'مرة واحدة' : `${currentItem.count} مرات`)}
           </span>
 
           <button

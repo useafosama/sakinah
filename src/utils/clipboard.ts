@@ -31,13 +31,14 @@ export function formatDhikrForSharing(dhikr: Dhikr): string {
   if (dhikr.translation) {
     content += `Translation: ${dhikr.translation}\n\n`;
   }
-  if (dhikr.count > 1) {
-    content += `التكرار: ${dhikr.count} مرات\n`;
-  }
+  content += `التكرار: ${dhikr.count === 1 ? 'مرة واحدة' : `${dhikr.count} مرات`}\n`;
   if (dhikr.virtue) {
     content += `الفضل: ${dhikr.virtue}\n`;
   }
-  content += `المصدر: ${dhikr.reference}\n— عبر سكينة | Sakinah`;
+  if (dhikr.source || dhikr.reference) {
+    content += `المصدر: ${dhikr.source || dhikr.reference}\n`;
+  }
+  content += `— عبر سكينة | Sakinah`;
   return content;
 }
 
