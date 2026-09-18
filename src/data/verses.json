@@ -1,0 +1,47 @@
+[
+  {
+    "id": "v-1",
+    "surahAr": "سُورَةُ الرَّعْد",
+    "surahEn": "Surah Ar-Ra'd",
+    "ayahNumber": 28,
+    "arabic": "الَّذِينَ آمَنُوا وَتَطْمَئِنُّ قُلُوبُهُم بِذِكْرِ اللَّهِ ۗ أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ",
+    "translation": "Those who have believed and whose hearts are assured by the remembrance of Allah. Unquestionably, by the remembrance of Allah hearts find rest.",
+    "theme": "طمأنينة القلوب"
+  },
+  {
+    "id": "v-2",
+    "surahAr": "سُورَةُ البَقَرَة",
+    "surahEn": "Surah Al-Baqarah",
+    "ayahNumber": 152,
+    "arabic": "فَاذْكُرُونِي أَذْكُرْكُمْ وَاشْكُرُوا لِي وَلَا تَكْفُرُونِ",
+    "translation": "So remember Me; I will remember you. And be grateful to Me and do not deny Me.",
+    "theme": "فضل الذكر والشكر"
+  },
+  {
+    "id": "v-3",
+    "surahAr": "سُورَةُ الشَّرْح",
+    "surahEn": "Surah Ash-Sharh",
+    "ayahNumber": 5,
+    "arabic": "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا ۝ إِنَّ مَعَ الْعُسْرِ يُسْرًا",
+    "translation": "For indeed, with hardship [will be] ease. Indeed, with hardship [will be] ease.",
+    "theme": "اليسر والفرج"
+  },
+  {
+    "id": "v-4",
+    "surahAr": "سُورَةُ الطَّلَاق",
+    "surahEn": "Surah At-Talaq",
+    "ayahNumber": 3,
+    "arabic": "وَمَن يَتَوَكَّلْ عَلَى اللَّهِ فَهُوَ حَسْبُهُ ۚ إِنَّ اللَّهَ بَالِغُ أَمْرِهِ",
+    "translation": "And whoever relies upon Allah - then He is sufficient for him. Indeed, Allah will accomplish His purpose.",
+    "theme": "التوكل واليقين"
+  },
+  {
+    "id": "v-5",
+    "surahAr": "سُورَةُ غَافِر",
+    "surahEn": "Surah Ghafir",
+    "ayahNumber": 60,
+    "arabic": "وَقَالَ رَبُّكُمُ ادْعُونِي أَسْتَجِبْ لَكُمْ",
+    "translation": "And your Lord says: 'Call upon Me; I will respond to you.'",
+    "theme": "إجابة الدعاء"
+  }
+]
