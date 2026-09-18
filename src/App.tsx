@@ -21,6 +21,7 @@ import { ShareCardModal } from './components/common/ShareCardModal';
 import { ReadingModeModal } from './components/common/ReadingModeModal';
 import { PWAInstallModal } from './components/common/PWAInstallModal';
 import { PWAInstallBanner } from './components/common/PWAInstallBanner';
+import { WelcomeModal } from './components/common/WelcomeModal';
 import { ToastProvider } from './components/common/Toast';
 
 import { PageType, AdhkarCategory, HadithTopic, Dhikr, Hadith, DailyMessage } from './types';
@@ -52,6 +53,22 @@ export function AppContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isReadingModeOpen, setIsReadingModeOpen] = useState(false);
   const [shareItem, setShareItem] = useState<Dhikr | Hadith | null>(null);
+  const [isWelcomeOpen, setIsWelcomeOpen] = useState(() => {
+    try {
+      return !sessionStorage.getItem('sakinah_welcome_seen_v1');
+    } catch {
+      return true;
+    }
+  });
+
+  const handleCloseWelcome = () => {
+    setIsWelcomeOpen(false);
+    try {
+      sessionStorage.setItem('sakinah_welcome_seen_v1', 'true');
+    } catch {
+      // Ignored
+    }
+  };
 
   // Settings, Theme, PWA & Storage hooks
   const { theme, isDark, toggleTheme } = useTheme();
@@ -297,6 +314,12 @@ export function AppContent() {
         onClose={() => setIsTasbeehOpen(false)}
         soundEnabled={settings.soundEnabled}
         vibrationEnabled={settings.vibrationEnabled}
+      />
+
+      {/* Spiritual Welcome Modal */}
+      <WelcomeModal
+        isOpen={isWelcomeOpen}
+        onClose={handleCloseWelcome}
       />
 
       {/* Reading & Typography Settings Modal */}
