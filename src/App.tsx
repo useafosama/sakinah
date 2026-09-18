@@ -9,7 +9,6 @@ import { DailyDhikr } from './components/home/DailyDhikr';
 import { DailyMessageCard } from './components/home/DailyMessageCard';
 import { PrayerTimes } from './components/home/PrayerTimes';
 import { CategoryGrid } from './components/home/CategoryGrid';
-import { QuranPlayer } from './components/home/QuranPlayer';
 import { HadithSpotlight } from './components/home/HadithSpotlight';
 import { SuggestedVideos } from './components/home/SuggestedVideos';
 import { AdhkarView } from './components/adhkar/AdhkarView';
@@ -184,9 +183,6 @@ export function AppContent() {
                 onSelectCategory={(cat) => setSelectedAdhkarCategory(cat)}
                 onOpenTasbeeh={() => setIsTasbeehOpen(true)}
               />
-
-              {/* Full Quran Listening Section */}
-              <QuranPlayer />
 
               {/* PWA Install Banner */}
               <PWAInstallBanner
