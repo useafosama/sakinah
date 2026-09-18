@@ -7,6 +7,7 @@ import { DailyWird } from './components/home/DailyWird';
 import { HeroVerse } from './components/home/HeroVerse';
 import { DailyDhikr } from './components/home/DailyDhikr';
 import { DailyMessageCard } from './components/home/DailyMessageCard';
+import { PrayerTimes } from './components/home/PrayerTimes';
 import { CategoryGrid } from './components/home/CategoryGrid';
 import { QuranPlayer } from './components/home/QuranPlayer';
 import { HadithSpotlight } from './components/home/HadithSpotlight';
@@ -146,6 +147,9 @@ export function AppContent() {
 
               {/* Daily Spiritual Message / Reminder */}
               <DailyMessageCard messages={dailyMessagesData} />
+
+              {/* Prayer Times & Live Next Prayer Countdown */}
+              <PrayerTimes />
 
               {/* Daily Wird Section with Progress & Continue */}
               <DailyWird
