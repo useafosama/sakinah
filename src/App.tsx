@@ -8,6 +8,7 @@ import { HeroVerse } from './components/home/HeroVerse';
 import { DailyDhikr } from './components/home/DailyDhikr';
 import { CategoryGrid } from './components/home/CategoryGrid';
 import { HadithSpotlight } from './components/home/HadithSpotlight';
+import { SuggestedVideos } from './components/home/SuggestedVideos';
 import { AdhkarView } from './components/adhkar/AdhkarView';
 import { HadithView } from './components/hadith/HadithView';
 import { FavoritesView } from './components/favorites/FavoritesView';
@@ -170,6 +171,9 @@ export function AppContent() {
                 onOpenShare={(h) => setShareItem(h)}
                 onNavigate={handleNavigate}
               />
+
+              {/* Curated Islamic Videos Section */}
+              <SuggestedVideos />
             </div>
           )}
 
