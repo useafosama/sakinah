@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sakinah-v1';
+const CACHE_NAME = 'sakinah-v2';
 
 const STATIC_ASSETS = [
   '/',
@@ -39,12 +39,8 @@ self.addEventListener('activate', (event) => {
 
 // Fetch event - Stale-While-Revalidate strategy for fast offline performance
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests
   if (event.request.method !== 'GET') return;
-
   const url = new URL(event.request.url);
-
-  // Skip chrome extension / external non-http requests
   if (!url.protocol.startsWith('http')) return;
 
   event.respondWith(
@@ -60,7 +56,6 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         })
         .catch(() => {
-          // If offline and request is for a navigation, return cached root
           if (event.request.mode === 'navigate') {
             return caches.match('/');
           }
@@ -68,6 +63,24 @@ self.addEventListener('fetch', (event) => {
         });
 
       return cachedResponse || fetchPromise;
+    })
+  );
+});
+
+// Notification Click handler
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow('/');
+      }
     })
   );
 });

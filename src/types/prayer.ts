@@ -1,3 +1,24 @@
+export type ObligatoryPrayerId = 'fajr' | 'dhuhr' | 'asr' | 'maghrib' | 'isha';
+
+export type PrayerId =
+  | 'imsak'
+  | 'fajr'
+  | 'sunrise'
+  | 'dhuhr'
+  | 'asr'
+  | 'sunset'
+  | 'maghrib'
+  | 'isha'
+  | 'midnight';
+
+export type PrayerStatus =
+  | 'upcoming'
+  | 'current'
+  | 'prayed_on_time'
+  | 'prayed_late'
+  | 'missed'
+  | 'unlogged';
+
 export interface TheShiaPrayerMeta {
   lat: number;
   lng: number;
@@ -67,7 +88,17 @@ export interface UserPrayerLocation {
   isGeolocation: boolean;
 }
 
-export type PrayerId = 'imsak' | 'fajr' | 'sunrise' | 'dhuhr' | 'asr' | 'sunset' | 'maghrib' | 'isha' | 'midnight';
+export interface PrayerLogRecord {
+  id?: string;
+  userId?: string;
+  date: string; // YYYY-MM-DD
+  prayer: ObligatoryPrayerId;
+  scheduledTime: string; // HH:MM
+  loggedAt: string; // ISO timestamp or HH:MM
+  status: 'prayed_on_time' | 'prayed_late' | 'missed';
+  createdAt: number;
+  updatedAt: number;
+}
 
 export interface PrayerItemView {
   id: PrayerId;
@@ -78,6 +109,8 @@ export interface PrayerItemView {
   isPrimary: boolean;
   isPassed: boolean;
   isNext: boolean;
+  isCurrent?: boolean;
+  log?: PrayerLogRecord;
 }
 
 export interface NextPrayerCountdown {
@@ -89,4 +122,46 @@ export interface NextPrayerCountdown {
   formattedCountdown: string;
   humanRemaining: string;
   isTomorrow: boolean;
+}
+
+export interface NotificationSettings {
+  enabled: boolean;
+  fajr: boolean;
+  dhuhr: boolean;
+  asr: boolean;
+  maghrib: boolean;
+  isha: boolean;
+  beforeMinutes: number; // 0 (disabled), 5, 10, 15, 30
+  postPrayerReminder: boolean;
+  postPrayerMinutes: number; // 10, 20, 30, 60
+}
+
+export interface PrayerUserSettings {
+  location: UserPrayerLocation;
+  calculationMethod: string; // 'Jafari'
+  notifications: NotificationSettings;
+  autoGeolocationOnStartup: boolean;
+  showMidnightAndImsak: boolean;
+}
+
+export interface DayPrayerSummary {
+  date: string; // YYYY-MM-DD
+  logs: Partial<Record<ObligatoryPrayerId, PrayerLogRecord>>;
+  completedCount: number;
+  totalCount: number; // usually 5
+  hasLate: boolean;
+  hasMissed: boolean;
+  isFullyLogged: boolean;
+}
+
+export interface PrayerStatisticsData {
+  totalLogged: number;
+  totalPossible: number;
+  onTimeCount: number;
+  lateCount: number;
+  missedCount: number;
+  unloggedCount: number;
+  completionRate: number; // percentage e.g. 82
+  currentStreakDays: number;
+  bestStreakDays: number;
 }
