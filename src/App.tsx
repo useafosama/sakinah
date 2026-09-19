@@ -25,16 +25,19 @@ import { ReadingModeModal } from './components/common/ReadingModeModal';
 import { PWAInstallModal } from './components/common/PWAInstallModal';
 import { PWAInstallBanner } from './components/common/PWAInstallBanner';
 import { WelcomeModal } from './components/common/WelcomeModal';
+import { QuickSetupModal } from './components/onboarding/QuickSetupModal';
 import { OfflineBanner } from './components/common/OfflineBanner';
 import { ToastProvider } from './components/common/Toast';
 
 import { PageType, AdhkarCategory, HadithTopic, Dhikr, Hadith, DailyMessage } from './types';
+import { HomeCardId } from './types/onboarding';
 import { useFavorites } from './hooks/useFavorites';
 import { useDhikrProgress } from './hooks/useDhikrProgress';
 import { useReadingSettings } from './hooks/useReadingSettings';
 import { useTheme } from './hooks/useTheme';
 import { useLastPosition } from './hooks/useLastPosition';
 import { usePWAInstall } from './hooks/usePWAInstall';
+import { useOnboarding } from './hooks/useOnboarding';
 
 import adhkarDataRaw from './data/adhkar.json';
 import hadithsDataRaw from './data/hadiths.json';
@@ -57,11 +60,31 @@ export function AppContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isReadingModeOpen, setIsReadingModeOpen] = useState(false);
   const [shareItem, setShareItem] = useState<Dhikr | Hadith | null>(null);
+
+  // Quick Setup & Onboarding Hook
+  const {
+    onboardingState,
+    userPreferences,
+    isOpen: isOnboardingOpen,
+    openSetup,
+    closeSetup,
+    updatePreferences,
+    toggleHomeCard,
+    moveHomeCard,
+    requestNotificationPermission,
+    handleComplete: handleCompleteOnboarding,
+    handleSkip: handleSkipOnboarding,
+    handleRestart: handleRestartOnboarding,
+    handleResetSettings,
+    handleFullReset,
+  } = useOnboarding();
+
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(() => {
     try {
-      return !sessionStorage.getItem('sakinah_welcome_seen_v1');
+      // If onboarding is active on first launch, don't show the legacy welcome modal
+      return false;
     } catch {
-      return true;
+      return false;
     }
   });
 
@@ -122,6 +145,70 @@ export function AppContent() {
   // Adhkar for current reading mode
   const currentReadingItems = adhkarData.filter((item) => item.category === selectedAdhkarCategory);
 
+  // Dynamic Home Card Renderer
+  const renderHomeCard = (cardId: HomeCardId) => {
+    switch (cardId) {
+      case 'prayerTimes':
+        return <PrayerTimes key="prayerTimes" onNavigate={handleNavigate} />;
+      case 'dailyMessage':
+        return <DailyMessageCard key="dailyMessage" messages={dailyMessagesData} />;
+      case 'dailyWird':
+        return (
+          <DailyWird
+            key="dailyWird"
+            allAdhkar={adhkarData}
+            counts={counts}
+            lastPosition={lastPosition}
+            onNavigate={handleNavigate}
+            onSelectCategory={(cat) => setSelectedAdhkarCategory(cat)}
+          />
+        );
+      case 'heroVerse':
+        return <HeroVerse key="heroVerse" verses={versesData} />;
+      case 'dailyDhikr':
+        return (
+          <DailyDhikr
+            key="dailyDhikr"
+            dhikr={dailyDhikr}
+            count={counts[dailyDhikr.id] || 0}
+            onIncrement={() => {
+              savePosition(dailyDhikr.category, dailyDhikr.id);
+              incrementCount(dailyDhikr.id, dailyDhikr.count);
+            }}
+            onReset={() => resetCount(dailyDhikr.id)}
+            isFavorite={isDhikrFavorite(dailyDhikr.id)}
+            onToggleFavorite={() => toggleDhikrFavorite(dailyDhikr.id)}
+            onOpenShare={(d) => setShareItem(d)}
+            onNavigate={handleNavigate}
+          />
+        );
+      case 'categoryGrid':
+        return (
+          <CategoryGrid
+            key="categoryGrid"
+            onNavigate={handleNavigate}
+            onSelectCategory={(cat) => setSelectedAdhkarCategory(cat)}
+            onOpenTasbeeh={() => setIsTasbeehOpen(true)}
+          />
+        );
+      case 'hadithSpotlight':
+        return (
+          <HadithSpotlight
+            key="hadithSpotlight"
+            hadith={dailyHadith}
+            isFavorite={isHadithFavorite(dailyHadith.id)}
+            onToggleFavorite={() => toggleHadithFavorite(dailyHadith.id)}
+            onOpenShare={(h) => setShareItem(h)}
+            onNavigate={handleNavigate}
+          />
+        );
+      case 'suggestedVideos':
+        return <SuggestedVideos key="suggestedVideos" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-sand-50 dark:bg-night-900 bg-islamic-pattern flex flex-col justify-between text-stone-800 dark:text-night-text transition-colors duration-200">
       <div>
@@ -144,71 +231,32 @@ export function AppContent() {
         <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-2 sm:pt-4 pb-8">
           {currentPage === 'home' && (
             <div className="space-y-3.5 sm:space-y-4.5">
-              {/* Featured Brand Hero Banner */}
-              <HomeBanner onNavigate={handleNavigate} />
-
-              {/* Daily Spiritual Message / Reminder */}
-              <DailyMessageCard messages={dailyMessagesData} />
-
-              {/* Prayer Times & Live Next Prayer Countdown */}
-              <PrayerTimes onNavigate={handleNavigate} />
-
-              {/* Daily Wird Section with Progress & Continue */}
-              <DailyWird
-                allAdhkar={adhkarData}
-                counts={counts}
-                lastPosition={lastPosition}
+              {/* Featured Brand Hero Banner with Greeting & Resume setup if skipped */}
+              <HomeBanner
                 onNavigate={handleNavigate}
-                onSelectCategory={(cat) => setSelectedAdhkarCategory(cat)}
+                displayName={userPreferences.displayName}
+                isSkippedOnboarding={onboardingState.skipped && !onboardingState.completed}
+                onOpenSetup={openSetup}
               />
 
-              {/* Quran Verse of Serenity */}
-              <HeroVerse verses={versesData} />
-
-              {/* Daily Dhikr Spotlight with Interactive Counter */}
-              <DailyDhikr
-                dhikr={dailyDhikr}
-                count={counts[dailyDhikr.id] || 0}
-                onIncrement={() => {
-                  savePosition(dailyDhikr.category, dailyDhikr.id);
-                  incrementCount(dailyDhikr.id, dailyDhikr.count);
-                }}
-                onReset={() => resetCount(dailyDhikr.id)}
-                isFavorite={isDhikrFavorite(dailyDhikr.id)}
-                onToggleFavorite={() => toggleDhikrFavorite(dailyDhikr.id)}
-                onOpenShare={(d) => setShareItem(d)}
-                onNavigate={handleNavigate}
-              />
-
-              {/* Exploration Category Grid */}
-              <CategoryGrid
-                onNavigate={handleNavigate}
-                onSelectCategory={(cat) => setSelectedAdhkarCategory(cat)}
-                onOpenTasbeeh={() => setIsTasbeehOpen(true)}
-              />
+              {/* Dynamically Ordered and Configured Home Cards */}
+              {userPreferences.homeLayout
+                .filter((cardId) => !userPreferences.disabledHomeCards?.includes(cardId))
+                .map((cardId) => renderHomeCard(cardId))}
 
               {/* PWA Install Banner */}
               <PWAInstallBanner
                 isInstallable={isInstallable}
                 onInstall={triggerInstall}
               />
-
-              {/* Daily Hadith Spotlight */}
-              <HadithSpotlight
-                hadith={dailyHadith}
-                isFavorite={isHadithFavorite(dailyHadith.id)}
-                onToggleFavorite={() => toggleHadithFavorite(dailyHadith.id)}
-                onOpenShare={(h) => setShareItem(h)}
-                onNavigate={handleNavigate}
-              />
-
-              {/* Curated Islamic Videos Section */}
-              <SuggestedVideos />
             </div>
           )}
 
           {currentPage === 'prayer-times' && (
-            <PrayerTimesView onNavigate={handleNavigate} />
+            <PrayerTimesView
+              onNavigate={handleNavigate}
+              onRestartSetup={handleRestartOnboarding}
+            />
           )}
 
           {currentPage === 'qibla' && (
@@ -337,7 +385,7 @@ export function AppContent() {
         onClose={handleCloseWelcome}
       />
 
-      {/* Reading & Typography Settings Modal */}
+      {/* Reading, Typography & Full Setup Settings Modal */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
@@ -348,6 +396,22 @@ export function AppContent() {
         increaseFontSize={increaseFontSize}
         decreaseFontSize={decreaseFontSize}
         resetSettings={resetSettings}
+        onRestartSetup={handleRestartOnboarding}
+        onResetPreferences={handleResetSettings}
+        onFullAppReset={handleFullReset}
+      />
+
+      {/* Quick Setup / Onboarding Modal */}
+      <QuickSetupModal
+        isOpen={isOnboardingOpen}
+        onClose={closeSetup}
+        onComplete={handleCompleteOnboarding}
+        onSkip={handleSkipOnboarding}
+        userPreferences={userPreferences}
+        onUpdatePreferences={updatePreferences}
+        onToggleHomeCard={toggleHomeCard}
+        onMoveHomeCard={moveHomeCard}
+        onRequestNotificationPermission={requestNotificationPermission}
       />
 
       {/* Offline Status & Sync Banner */}

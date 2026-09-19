@@ -1,7 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Volume2, VolumeX, Smartphone, Type, SlidersHorizontal, RotateCcw, Download } from 'lucide-react';
+import {
+  X,
+  Volume2,
+  VolumeX,
+  Smartphone,
+  Type,
+  SlidersHorizontal,
+  RotateCcw,
+  Download,
+  Sparkles,
+  AlertTriangle,
+  Trash2
+} from 'lucide-react';
 import { ReadingSettings } from '../../types';
+import { prayerRepository } from '../../services/prayerRepository';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -13,6 +26,9 @@ interface SettingsModalProps {
   increaseFontSize: () => void;
   decreaseFontSize: () => void;
   resetSettings: () => void;
+  onRestartSetup?: () => void;
+  onResetPreferences?: () => void;
+  onFullAppReset?: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -25,11 +41,34 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   increaseFontSize,
   decreaseFontSize,
   resetSettings,
+  onRestartSetup,
+  onResetPreferences,
+  onFullAppReset,
 }) => {
+  const [confirmResetSettings, setConfirmResetSettings] = useState(false);
+  const [confirmFullReset, setConfirmFullReset] = useState(false);
+  const pendingActionsCount = prayerRepository.getPendingActions().length;
+
+  const handleResetSettingsConfirm = () => {
+    resetSettings();
+    if (onResetPreferences) {
+      onResetPreferences();
+    }
+    setConfirmResetSettings(false);
+  };
+
+  const handleFullResetConfirm = () => {
+    if (onFullAppReset) {
+      onFullAppReset();
+    }
+    setConfirmFullReset(false);
+    onClose();
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" dir="rtl">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -44,13 +83,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             initial={{ opacity: 0, scale: 0.96, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 10 }}
-            className="relative w-full max-w-md bg-sand-50 dark:bg-night-900 rounded-2xl sm:rounded-3xl border border-sand-300/80 dark:border-night-border p-5 sm:p-6 shadow-xl z-10 max-h-[85vh] overflow-y-auto"
+            className="relative w-full max-w-md bg-sand-50 dark:bg-night-900 rounded-2xl sm:rounded-3xl border border-sand-300/80 dark:border-night-border p-5 sm:p-6 shadow-xl z-10 max-h-[85vh] overflow-y-auto font-arabic-text"
           >
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-sand-200/70 dark:border-night-border mb-4">
               <div className="flex items-center gap-2 text-islamic-900 dark:text-night-text">
                 <SlidersHorizontal className="w-4 h-4 text-gold-500" />
-                <h3 className="text-lg font-bold">إعدادات القراءة والتخصيص</h3>
+                <h3 className="text-lg font-bold font-arabic-heading">إعدادات التطبيق والتخصيص</h3>
               </div>
               <button
                 onClick={onClose}
@@ -62,6 +101,33 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </div>
 
             <div className="space-y-4">
+              {/* Quick Setup Wizard Card */}
+              {onRestartSetup && (
+                <div className="bg-gradient-to-r from-gold-50/90 to-sand-100/90 dark:from-night-850 dark:to-night-800 p-4 rounded-2xl border border-gold-200/80 dark:border-night-border shadow-2xs">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h4 className="text-xs font-bold text-islamic-900 dark:text-night-text flex items-center gap-1.5 mb-0.5">
+                        <Sparkles className="w-3.5 h-3.5 text-gold-600 dark:text-gold-400" />
+                        الإعداد السريع للتطبيق (Setup Wizard)
+                      </h4>
+                      <p className="text-[11px] text-stone-500 dark:text-night-muted">
+                        أعد تخصيص اسمك، مدينتك، التنبيهات، وترتيب الصفحة الرئيسية
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        onClose();
+                        onRestartSetup();
+                      }}
+                      className="px-3 py-1.5 rounded-full bg-islamic-800 dark:bg-gold-400 text-sand-50 dark:text-islamic-950 text-xs font-bold hover:bg-islamic-900 transition-colors shadow-2xs shrink-0 cursor-pointer"
+                    >
+                      إعادة الإعداد
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Install PWA App Card */}
               {isInstallable && onInstall && (
                 <div className="bg-gradient-to-r from-gold-50 to-sand-100 dark:from-night-850 dark:to-night-800 p-4 rounded-2xl border border-gold-200/80 dark:border-night-border shadow-2xs">
@@ -196,18 +262,92 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </label>
               </div>
 
-              {/* Reset to Default */}
-              <div className="flex justify-between items-center pt-1">
-                <button
-                  onClick={resetSettings}
-                  className="flex items-center gap-1 text-[11px] text-stone-400 dark:text-night-muted hover:text-islamic-800 dark:hover:text-gold-400 transition-colors"
-                >
-                  <RotateCcw className="w-3 h-3" />
-                  استعادة الافتراضي
-                </button>
+              {/* Reset Controls Section */}
+              <div className="bg-white dark:bg-night-850 p-4 rounded-2xl border border-sand-200/80 dark:border-night-border shadow-2xs space-y-3">
+                <h4 className="text-xs font-semibold text-stone-700 dark:text-night-text">إعادة الضبط والاستعادة</h4>
+
+                {/* Reset Settings to Default */}
+                {!confirmResetSettings ? (
+                  <button
+                    onClick={() => setConfirmResetSettings(true)}
+                    className="w-full py-2 px-3 rounded-xl bg-sand-100 hover:bg-sand-200 dark:bg-night-800 dark:hover:bg-night-700 text-stone-700 dark:text-night-text text-xs font-bold transition-colors flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <RotateCcw className="w-3.5 h-3.5 text-stone-500" />
+                      استعادة الإعدادات الافتراضية
+                    </span>
+                    <span className="text-[10px] text-stone-400">يحافظ على سجل الصلوات</span>
+                  </button>
+                ) : (
+                  <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 space-y-2">
+                    <p className="text-xs text-amber-900 dark:text-amber-200">
+                      هل تريد استعادة جميع الإعدادات والخطوط وترتيب الرئيسية للوضع الافتراضي؟ (لن يتم حذف سجل الصلوات أو الأذكار).
+                    </p>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => setConfirmResetSettings(false)}
+                        className="px-2.5 py-1 text-xs text-stone-500"
+                      >
+                        إلغاء
+                      </button>
+                      <button
+                        onClick={handleResetSettingsConfirm}
+                        className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold"
+                      >
+                        تأكيد الاستعادة
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Full App Reset */}
+                {!confirmFullReset ? (
+                  <button
+                    onClick={() => setConfirmFullReset(true)}
+                    className="w-full py-2 px-3 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/20 dark:hover:bg-red-950/40 text-red-700 dark:text-red-400 text-xs font-bold transition-colors flex items-center justify-between cursor-pointer"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Trash2 className="w-3.5 h-3.5" />
+                      إعادة ضبط التطبيق بالكامل (Full Reset)
+                    </span>
+                    <span className="text-[10px] text-red-500">مسح الذاكرة المحلية</span>
+                  </button>
+                ) : (
+                  <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 space-y-2">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                      <p className="text-xs text-red-900 dark:text-red-200">
+                        تحذير: سيتم مسح جميع البيانات المحلية والذاكرة المؤقتة وسجل الصلوات غير المتزامن وإعادة التطبيق إلى أول تشغيل.
+                      </p>
+                    </div>
+                    {pendingActionsCount > 0 && (
+                      <p className="text-[11px] text-amber-700 dark:text-amber-300 font-bold">
+                        ⚠️ يوجد لديك {pendingActionsCount} عمليات معلقة لم تتم مزامنتها بعد!
+                      </p>
+                    )}
+                    <div className="flex items-center justify-end gap-2 pt-1">
+                      <button
+                        onClick={() => setConfirmFullReset(false)}
+                        className="px-2.5 py-1 text-xs text-stone-500"
+                      >
+                        إلغاء
+                      </button>
+                      <button
+                        onClick={handleFullResetConfirm}
+                        className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold"
+                      >
+                        نعم، مسح كل شيء
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Close / Done Button */}
+              <div className="flex justify-end items-center pt-1">
                 <button
                   onClick={onClose}
-                  className="px-4 py-1.5 rounded-full bg-islamic-800 dark:bg-gold-400 text-sand-50 dark:text-islamic-950 text-xs font-medium hover:bg-islamic-900 transition-colors shadow-2xs"
+                  className="px-5 py-2 rounded-full bg-islamic-800 dark:bg-gold-400 text-sand-50 dark:text-islamic-950 text-xs font-bold hover:bg-islamic-900 transition-colors shadow-2xs cursor-pointer"
                 >
                   تم وحفظ
                 </button>
@@ -219,3 +359,4 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     </AnimatePresence>
   );
 };
+

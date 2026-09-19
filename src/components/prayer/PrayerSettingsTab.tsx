@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { PrayerUserSettings, SyncStatusState } from '../../types/prayer';
 import { NotificationStatus } from '../../services/prayerNotificationService';
+import { Sparkles } from 'lucide-react';
 
 interface PrayerSettingsTabProps {
   settings: PrayerUserSettings;
@@ -24,6 +25,7 @@ interface PrayerSettingsTabProps {
   onRequestLocation: () => void;
   onUpdateSettings: (newSettings: Partial<PrayerUserSettings>) => void;
   onRequestNotificationPermission: () => void;
+  onRestartSetup?: () => void;
 }
 
 export const PrayerSettingsTab: React.FC<PrayerSettingsTabProps> = ({
@@ -36,6 +38,7 @@ export const PrayerSettingsTab: React.FC<PrayerSettingsTabProps> = ({
   onRequestLocation,
   onUpdateSettings,
   onRequestNotificationPermission,
+  onRestartSetup,
 }) => {
   const { notifications, location } = settings;
 
@@ -81,6 +84,32 @@ export const PrayerSettingsTab: React.FC<PrayerSettingsTabProps> = ({
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in text-right font-arabic-text" dir="rtl">
+      {/* Quick Setup Wizard Banner */}
+      {onRestartSetup && (
+        <div className="bg-gradient-to-r from-gold-50/90 to-sand-100/90 dark:from-night-850 dark:to-night-800 p-4 rounded-2xl sm:rounded-3xl border border-gold-200/80 dark:border-night-border shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5">
+            <span className="p-2 rounded-xl bg-gold-500/10 dark:bg-gold-400/10 text-gold-600 dark:text-gold-400 shrink-0">
+              <Sparkles className="w-4 h-4" />
+            </span>
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-islamic-950 dark:text-night-text">
+                الإعداد السريع للتطبيق والتخصيص
+              </h4>
+              <p className="text-[11px] text-stone-500 dark:text-night-muted">
+                إعادة ضبط موقعك، التنبيهات، وترتيب بطاقات الصفحة الرئيسية في شاشة واحدة.
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={onRestartSetup}
+            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-islamic-800 hover:bg-islamic-900 dark:bg-gold-500 dark:hover:bg-gold-600 text-sand-50 dark:text-islamic-950 text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer text-center"
+          >
+            إعادة الإعداد السريع
+          </button>
+        </div>
+      )}
+
       {/* Location Settings Card */}
       <div className="bg-white dark:bg-night-850 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-sand-300/70 dark:border-night-border shadow-card space-y-4">
         <div className="flex items-center gap-2.5 pb-3 border-b border-sand-100 dark:border-night-border">

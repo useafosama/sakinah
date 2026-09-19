@@ -28,9 +28,10 @@ type TabType = 'today' | 'history' | 'stats' | 'settings';
 
 interface PrayerTimesViewProps {
   onNavigate?: (page: PageType) => void;
+  onRestartSetup?: () => void;
 }
 
-export const PrayerTimesView: React.FC<PrayerTimesViewProps> = ({ onNavigate }) => {
+export const PrayerTimesView: React.FC<PrayerTimesViewProps> = ({ onNavigate, onRestartSetup }) => {
   const [activeTab, setActiveTab] = useState<TabType>('today');
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
 
@@ -342,6 +343,7 @@ export const PrayerTimesView: React.FC<PrayerTimesViewProps> = ({ onNavigate }) 
               onRequestLocation={requestLocation}
               onUpdateSettings={updateSettings}
               onRequestNotificationPermission={requestNotificationPermission}
+              onRestartSetup={onRestartSetup}
             />
           )}
         </>
