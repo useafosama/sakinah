@@ -1,4 +1,6 @@
-export type PageType = 'home' | 'adhkar' | 'hadith' | 'favorites' | 'sources';
+export type PageType = 'home' | 'prayer-times' | 'adhkar' | 'hadith' | 'favorites' | 'sources';
+
+export * from './prayer';
 
 export type AdhkarCategory = 'morning' | 'evening' | 'after_prayer' | 'general' | 'sleep';
 

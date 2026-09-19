@@ -31,6 +31,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const navItems: { id: PageType; label: string }[] = [
     { id: 'home', label: 'الرئيسية' },
+    { id: 'prayer-times', label: 'مواقيت الصلاة' },
     { id: 'adhkar', label: 'الأذكار' },
     { id: 'hadith', label: 'الأحاديث' },
     { id: 'favorites', label: 'المفضلة' },

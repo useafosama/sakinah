@@ -1,5 +1,5 @@
 import React from 'react';
-import { Home, Sparkles, BookOpen, Bookmark, ShieldCheck } from 'lucide-react';
+import { Home, Sparkles, BookOpen, Bookmark, Clock } from 'lucide-react';
 import { PageType } from '../../types';
 
 interface MobileNavProps {
@@ -15,10 +15,10 @@ export const MobileNav: React.FC<MobileNavProps> = ({
 }) => {
   const items: { id: PageType; label: string; icon: React.ReactNode }[] = [
     { id: 'home', label: 'الرئيسية', icon: <Home className="w-4.5 h-4.5" /> },
+    { id: 'prayer-times', label: 'المواقيت', icon: <Clock className="w-4.5 h-4.5" /> },
     { id: 'adhkar', label: 'الأذكار', icon: <Sparkles className="w-4.5 h-4.5" /> },
     { id: 'hadith', label: 'الأحاديث', icon: <BookOpen className="w-4.5 h-4.5" /> },
     { id: 'favorites', label: 'المفضلة', icon: <Bookmark className="w-4.5 h-4.5" /> },
-    { id: 'sources', label: 'المصادر', icon: <ShieldCheck className="w-4.5 h-4.5" /> },
   ];
 
   return (

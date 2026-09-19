@@ -11,6 +11,7 @@ import { PrayerTimes } from './components/home/PrayerTimes';
 import { CategoryGrid } from './components/home/CategoryGrid';
 import { HadithSpotlight } from './components/home/HadithSpotlight';
 import { SuggestedVideos } from './components/home/SuggestedVideos';
+import { PrayerTimesView } from './components/prayer/PrayerTimesView';
 import { AdhkarView } from './components/adhkar/AdhkarView';
 import { HadithView } from './components/hadith/HadithView';
 import { FavoritesView } from './components/favorites/FavoritesView';
@@ -148,7 +149,7 @@ export function AppContent() {
               <DailyMessageCard messages={dailyMessagesData} />
 
               {/* Prayer Times & Live Next Prayer Countdown */}
-              <PrayerTimes />
+              <PrayerTimes onNavigate={handleNavigate} />
 
               {/* Daily Wird Section with Progress & Continue */}
               <DailyWird
@@ -202,6 +203,10 @@ export function AppContent() {
               {/* Curated Islamic Videos Section */}
               <SuggestedVideos />
             </div>
+          )}
+
+          {currentPage === 'prayer-times' && (
+            <PrayerTimesView />
           )}
 
           {currentPage === 'adhkar' && (
