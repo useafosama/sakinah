@@ -18,10 +18,14 @@ import {
   NextPrayerCountdown,
   DayPrayerSummary,
   ObligatoryPrayerId,
-  PrayerId
+  PrayerId,
+  PrayerStreakData,
+  CachedPrayerTimesMeta
 } from '../../types/prayer';
 import { PageType } from '../../types';
 import { PrayerStatusModal } from './PrayerStatusModal';
+import { PrayerStreakCard } from './PrayerStreakCard';
+import { Database } from 'lucide-react';
 
 const PRAYER_ICONS: Record<PrayerId, React.ElementType> = {
   imsak: Moon,
@@ -42,6 +46,9 @@ interface PrayerTodayTabProps {
   daySummary: DayPrayerSummary;
   isToday: boolean;
   qiblaAngle?: number;
+  streakData?: PrayerStreakData;
+  isOfflineData?: boolean;
+  cachedMeta?: CachedPrayerTimesMeta | null;
   onNavigate?: (page: PageType) => void;
   onQuickLog: (prayer: ObligatoryPrayerId, scheduledTime24: string, status?: 'prayed_on_time' | 'prayed_late' | 'missed') => void;
   onRemoveLog: (prayer: ObligatoryPrayerId) => void;
@@ -53,6 +60,9 @@ export const PrayerTodayTab: React.FC<PrayerTodayTabProps> = ({
   daySummary,
   isToday,
   qiblaAngle,
+  streakData,
+  isOfflineData,
+  cachedMeta,
   onNavigate,
   onQuickLog,
   onRemoveLog,
@@ -76,6 +86,19 @@ export const PrayerTodayTab: React.FC<PrayerTodayTabProps> = ({
 
   return (
     <div className="space-y-4 sm:space-y-5 animate-fade-in text-right font-arabic-text">
+      {/* Offline Data Notice Banner */}
+      {isOfflineData && (
+        <div className="p-3 rounded-2xl bg-sand-100/90 dark:bg-night-850/90 border border-sand-200 dark:border-night-border text-stone-700 dark:text-night-text flex items-center justify-between text-xs shadow-2xs">
+          <div className="flex items-center gap-2">
+            <Database className="w-3.5 h-3.5 text-gold-600 dark:text-gold-400" />
+            <span>بيانات المواقيت محفوظة محلياً • {cachedMeta?.humanAge || 'جاهزة للاستخدام دون إنترنت'}</span>
+          </div>
+          <span className="text-[10px] px-2 py-0.5 rounded-full bg-sand-200 dark:bg-night-800 text-stone-600 dark:text-night-muted font-bold font-sans">
+            Offline Ready
+          </span>
+        </div>
+      )}
+
       {/* Highlighted Next Prayer Hero Card */}
       {nextPrayer && isToday && (
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-islamic-900 via-islamic-850 to-islamic-800 dark:from-night-900 dark:via-night-850 dark:to-night-800 p-5 sm:p-6 text-sand-50 border border-islamic-700/50 dark:border-night-border shadow-md">
@@ -119,6 +142,11 @@ export const PrayerTodayTab: React.FC<PrayerTodayTabProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Personal Prayer Streak Card */}
+      {streakData && isToday && (
+        <PrayerStreakCard streakData={streakData} />
       )}
 
       {/* Daily Progress / Tracker Banner */}

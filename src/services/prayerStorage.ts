@@ -4,97 +4,38 @@ import {
   PrayerUserSettings,
   PrayerStatisticsData,
   DayPrayerSummary,
-  TheShiaPrayerResponse
+  TheShiaPrayerResponse,
+  PrayerStreakData,
+  CachedPrayerTimesMeta
 } from '../types/prayer';
-import { DEFAULT_PRAYER_LOCATION, formatDateISO } from './theShiaPrayerService';
+import { formatDateISO } from './theShiaPrayerService';
+import { prayerRepository, DEFAULT_USER_SETTINGS } from './prayerRepository';
+import { calculatePrayerStreak, isDayComplete } from './streakService';
 
-const STORAGE_KEYS = {
-  SETTINGS: 'sakinah_prayer_settings_v2',
-  LOGS: 'sakinah_prayer_logs_v2',
-  API_CACHE: 'sakinah_theshia_cache_v2_',
-  SYNC_QUEUE: 'sakinah_prayer_sync_queue_v2',
-};
-
-export const DEFAULT_USER_SETTINGS: PrayerUserSettings = {
-  location: DEFAULT_PRAYER_LOCATION,
-  calculationMethod: 'Jafari',
-  notifications: {
-    enabled: false,
-    fajr: true,
-    dhuhr: true,
-    asr: true,
-    maghrib: true,
-    isha: true,
-    beforeMinutes: 10,
-    postPrayerReminder: true,
-    postPrayerMinutes: 20,
-  },
-  autoGeolocationOnStartup: false,
-  showMidnightAndImsak: true,
-};
+export { DEFAULT_USER_SETTINGS };
 
 // ----------------------------------------------------
-// Settings Management
+// Settings Management (via prayerRepository)
 // ----------------------------------------------------
 
 export function getStoredUserSettings(): PrayerUserSettings {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return {
-        ...DEFAULT_USER_SETTINGS,
-        ...parsed,
-        location: { ...DEFAULT_USER_SETTINGS.location, ...(parsed.location || {}) },
-        notifications: { ...DEFAULT_USER_SETTINGS.notifications, ...(parsed.notifications || {}) },
-      };
-    }
-  } catch {
-    // ignore
-  }
-  return DEFAULT_USER_SETTINGS;
+  return prayerRepository.getSettings();
 }
 
 export function saveStoredUserSettings(settings: PrayerUserSettings): void {
-  try {
-    localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
-  } catch {
-    // ignore
-  }
+  prayerRepository.saveSettings(settings);
 }
 
 // ----------------------------------------------------
-// Prayer Logs Storage & Queries
+// Prayer Logs Storage & Queries (via prayerRepository)
 // ----------------------------------------------------
 
-type LogsMap = Record<string, Partial<Record<ObligatoryPrayerId, PrayerLogRecord>>>;
-
-function getAllStoredLogs(): LogsMap {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEYS.LOGS);
-    if (raw) return JSON.parse(raw);
-  } catch {
-    // ignore
-  }
-  return {};
-}
-
-function saveAllStoredLogs(logs: LogsMap): void {
-  try {
-    localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(logs));
-  } catch {
-    // ignore
-  }
+export function getAllStoredLogs(): Record<string, Partial<Record<ObligatoryPrayerId, PrayerLogRecord>>> {
+  return prayerRepository.getAllLogs();
 }
 
 export function getLogsForDate(dateStr: string): Partial<Record<ObligatoryPrayerId, PrayerLogRecord>> {
-  const allLogs = getAllStoredLogs();
-  return allLogs[dateStr] || {};
-}
-
-export function getLogForPrayer(dateStr: string, prayer: ObligatoryPrayerId): PrayerLogRecord | undefined {
-  const dayLogs = getLogsForDate(dateStr);
-  return dayLogs[prayer];
+  return prayerRepository.getLogsForDate(dateStr);
 }
 
 export function savePrayerLog(
@@ -103,52 +44,19 @@ export function savePrayerLog(
   status: 'prayed_on_time' | 'prayed_late' | 'missed',
   scheduledTime: string = ''
 ): PrayerLogRecord {
-  const allLogs = getAllStoredLogs();
-  if (!allLogs[dateStr]) {
-    allLogs[dateStr] = {};
-  }
-
-  const now = new Date();
-  const timeString = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  const timestamp = Date.now();
-
-  const record: PrayerLogRecord = {
-    id: `${dateStr}_${prayer}`,
-    date: dateStr,
-    prayer,
-    scheduledTime: scheduledTime || timeString,
-    loggedAt: timeString,
-    status,
-    createdAt: allLogs[dateStr][prayer]?.createdAt || timestamp,
-    updatedAt: timestamp,
-  };
-
-  allLogs[dateStr][prayer] = record;
-  saveAllStoredLogs(allLogs);
-  return record;
+  return prayerRepository.saveLog(dateStr, prayer, status, scheduledTime);
 }
 
 export function removePrayerLog(dateStr: string, prayer: ObligatoryPrayerId): void {
-  const allLogs = getAllStoredLogs();
-  if (allLogs[dateStr] && allLogs[dateStr][prayer]) {
-    delete allLogs[dateStr][prayer];
-    if (Object.keys(allLogs[dateStr]).length === 0) {
-      delete allLogs[dateStr];
-    }
-    saveAllStoredLogs(allLogs);
-  }
+  prayerRepository.removeLog(dateStr, prayer);
 }
 
 export function clearAllPrayerLogs(): void {
-  try {
-    localStorage.removeItem(STORAGE_KEYS.LOGS);
-  } catch {
-    // ignore
-  }
+  prayerRepository.clearAllLogs();
 }
 
 // ----------------------------------------------------
-// History & Statistics Calculations
+// Day & Week Summaries
 // ----------------------------------------------------
 
 export function getDaySummary(dateStr: string): DayPrayerSummary {
@@ -176,16 +84,15 @@ export function getDaySummary(dateStr: string): DayPrayerSummary {
     totalCount: 5,
     hasLate,
     hasMissed,
-    isFullyLogged: completedCount === 5,
+    isFullyLogged: isDayComplete(logs),
   };
 }
 
 export function getWeekSummaries(referenceDate: Date = new Date()): DayPrayerSummary[] {
   const summaries: DayPrayerSummary[] = [];
-  // Calculate Saturday of current week (Arabic week starting Saturday)
   const current = new Date(referenceDate);
-  const dayOfWeek = current.getDay(); // 0 = Sunday, 6 = Saturday
-  const diffToSaturday = (dayOfWeek + 1) % 7; // days passed since last Saturday
+  const dayOfWeek = current.getDay(); // 0 = Sun, 6 = Sat
+  const diffToSaturday = (dayOfWeek + 1) % 7; // days passed since Saturday
   
   const startSaturday = new Date(current);
   startSaturday.setDate(current.getDate() - diffToSaturday);
@@ -198,6 +105,15 @@ export function getWeekSummaries(referenceDate: Date = new Date()): DayPrayerSum
   }
 
   return summaries;
+}
+
+// ----------------------------------------------------
+// Streak & Statistics Calculations
+// ----------------------------------------------------
+
+export function getPrayerStreak(referenceDate: Date = new Date()): PrayerStreakData {
+  const allLogs = getAllStoredLogs();
+  return calculatePrayerStreak(allLogs, referenceDate);
 }
 
 export function calculatePrayerStatistics(daysBack: number = 30): PrayerStatisticsData {
@@ -231,33 +147,7 @@ export function calculatePrayerStatistics(daysBack: number = 30): PrayerStatisti
   const unloggedCount = Math.max(0, totalPossible - totalLogged);
   const completionRate = totalPossible > 0 ? Math.round((totalLogged / totalPossible) * 100) : 0;
 
-  // Calculate gentle streak
-  let currentStreakDays = 0;
-  let bestStreakDays = 0;
-  let tempStreak = 0;
-
-  for (let i = 0; i < 90; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    const dateStr = formatDateISO(d);
-    const summary = getDaySummary(dateStr);
-
-    if (summary.completedCount >= 1) {
-      tempStreak++;
-      if (i === currentStreakDays) {
-        currentStreakDays++;
-      }
-      if (tempStreak > bestStreakDays) {
-        bestStreakDays = tempStreak;
-      }
-    } else {
-      if (i === 0) {
-        // Today might not be finished yet, don't break streak immediately if yesterday was logged
-        continue;
-      }
-      tempStreak = 0;
-    }
-  }
+  const streakData = calculatePrayerStreak(allLogs, today);
 
   return {
     totalLogged,
@@ -267,13 +157,13 @@ export function calculatePrayerStatistics(daysBack: number = 30): PrayerStatisti
     missedCount,
     unloggedCount,
     completionRate,
-    currentStreakDays,
-    bestStreakDays,
+    currentStreakDays: streakData.currentStreak,
+    bestStreakDays: streakData.longestStreak,
   };
 }
 
 // ----------------------------------------------------
-// API Response Caching
+// API Response Caching (via prayerRepository)
 // ----------------------------------------------------
 
 export function getCachedTheShiaResponse(
@@ -282,19 +172,17 @@ export function getCachedTheShiaResponse(
   dateStr: string,
   method: string
 ): TheShiaPrayerResponse | null {
-  try {
-    const key = `${STORAGE_KEYS.API_CACHE}${lat.toFixed(2)}_${lng.toFixed(2)}_${method}_${dateStr}`;
-    const raw = localStorage.getItem(key);
-    if (!raw) return null;
-    const item = JSON.parse(raw);
-    if (Date.now() - item.cachedAt > 86400000) {
-      localStorage.removeItem(key);
-      return null;
-    }
-    return item.data;
-  } catch {
-    return null;
-  }
+  const cached = prayerRepository.getCachedPrayerTimes(lat, lng, dateStr, method);
+  return cached?.data || null;
+}
+
+export function getCachedTheShiaWithMeta(
+  lat: number,
+  lng: number,
+  dateStr: string,
+  method: string
+): { data: TheShiaPrayerResponse; meta: CachedPrayerTimesMeta } | null {
+  return prayerRepository.getCachedPrayerTimes(lat, lng, dateStr, method);
 }
 
 export function setCachedTheShiaResponse(
@@ -304,16 +192,5 @@ export function setCachedTheShiaResponse(
   method: string,
   data: TheShiaPrayerResponse
 ): void {
-  try {
-    const key = `${STORAGE_KEYS.API_CACHE}${lat.toFixed(2)}_${lng.toFixed(2)}_${method}_${dateStr}`;
-    localStorage.setItem(
-      key,
-      JSON.stringify({
-        cachedAt: Date.now(),
-        data,
-      })
-    );
-  } catch {
-    // ignore
-  }
+  prayerRepository.setCachedPrayerTimes(lat, lng, dateStr, method, data);
 }

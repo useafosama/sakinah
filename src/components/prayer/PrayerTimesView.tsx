@@ -45,6 +45,7 @@ export const PrayerTimesView: React.FC<PrayerTimesViewProps> = ({ onNavigate }) 
     nextPrayer,
     daySummary,
     weekSummaries,
+    streakData,
     statistics,
     loading,
     error,
@@ -53,6 +54,11 @@ export const PrayerTimesView: React.FC<PrayerTimesViewProps> = ({ onNavigate }) 
     notificationStatus,
     formattedGregorianDate,
     formattedHijriDate,
+    isOnline,
+    cachedMeta,
+    isFromCache,
+    syncStatus,
+    syncNow,
     quickLog,
     removeLog,
     requestLocation,
@@ -298,6 +304,9 @@ export const PrayerTimesView: React.FC<PrayerTimesViewProps> = ({ onNavigate }) 
               daySummary={daySummary}
               isToday={isToday}
               qiblaAngle={data?.meta?.qibla}
+              streakData={streakData}
+              isOfflineData={!isOnline || isFromCache}
+              cachedMeta={cachedMeta}
               onNavigate={onNavigate}
               onQuickLog={quickLog}
               onRemoveLog={removeLog}
@@ -317,6 +326,7 @@ export const PrayerTimesView: React.FC<PrayerTimesViewProps> = ({ onNavigate }) 
           {activeTab === 'stats' && (
             <PrayerStatsTab
               statistics={statistics}
+              streakData={streakData}
               onClearHistory={clearHistory}
             />
           )}
@@ -326,6 +336,8 @@ export const PrayerTimesView: React.FC<PrayerTimesViewProps> = ({ onNavigate }) 
               settings={settings}
               notificationStatus={notificationStatus}
               geoLoading={geoLoading}
+              syncStatus={syncStatus}
+              onSyncNow={syncNow}
               onOpenCityModal={() => setIsCityModalOpen(true)}
               onRequestLocation={requestLocation}
               onUpdateSettings={updateSettings}

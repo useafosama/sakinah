@@ -5,15 +5,21 @@ import {
   Compass,
   AlertCircle,
   Navigation,
-  Loader2
+  Loader2,
+  Wifi,
+  WifiOff,
+  RefreshCw,
+  Database
 } from 'lucide-react';
-import { PrayerUserSettings } from '../../types/prayer';
+import { PrayerUserSettings, SyncStatusState } from '../../types/prayer';
 import { NotificationStatus } from '../../services/prayerNotificationService';
 
 interface PrayerSettingsTabProps {
   settings: PrayerUserSettings;
   notificationStatus: NotificationStatus;
   geoLoading: boolean;
+  syncStatus?: SyncStatusState;
+  onSyncNow?: () => void;
   onOpenCityModal: () => void;
   onRequestLocation: () => void;
   onUpdateSettings: (newSettings: Partial<PrayerUserSettings>) => void;
@@ -24,6 +30,8 @@ export const PrayerSettingsTab: React.FC<PrayerSettingsTabProps> = ({
   settings,
   notificationStatus,
   geoLoading,
+  syncStatus,
+  onSyncNow,
   onOpenCityModal,
   onRequestLocation,
   onUpdateSettings,
@@ -268,6 +276,69 @@ export const PrayerSettingsTab: React.FC<PrayerSettingsTabProps> = ({
               <option value={60}>بعد ساعة واحدة</option>
             </select>
           </div>
+        </div>
+      </div>
+
+      {/* Offline & Sync Status Card */}
+      <div className="bg-white dark:bg-night-850 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-sand-300/70 dark:border-night-border shadow-card space-y-4">
+        <div className="flex items-center gap-2.5 pb-3 border-b border-sand-100 dark:border-night-border">
+          <span className="p-2 rounded-xl bg-islamic-100 dark:bg-night-800 text-islamic-800 dark:text-gold-400">
+            <Database className="w-4 h-4" />
+          </span>
+          <div>
+            <h3 className="text-base font-bold text-islamic-950 dark:text-night-text font-arabic-heading">
+              العمل دون اتصال والمزامنة (Offline & Sync)
+            </h3>
+            <p className="text-xs text-stone-500 dark:text-night-muted">
+              حفظ السجل ومواقيت الصلاة محلياً مع المزامنة التلقائية
+            </p>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-sand-50/60 dark:bg-night-900/40 border border-sand-200/80 dark:border-night-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                syncStatus?.isOnline
+                  ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400'
+                  : 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400'
+              }`}
+            >
+              {syncStatus?.isOnline ? <Wifi className="w-5 h-5" /> : <WifiOff className="w-5 h-5" />}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-islamic-950 dark:text-night-text">
+                  {syncStatus?.isOnline ? 'متصل بالإنترنت' : 'وضع العمل دون اتصال'}
+                </span>
+                <span
+                  className={`text-[10px] px-2 py-0.2 rounded-full font-bold ${
+                    syncStatus?.isOnline
+                      ? 'bg-emerald-500 text-white'
+                      : 'bg-amber-500 text-white'
+                  }`}
+                >
+                  {syncStatus?.isOnline ? 'Online' : 'Offline'}
+                </span>
+              </div>
+              <p className="text-xs text-stone-500 dark:text-night-muted mt-0.5">
+                {syncStatus?.pendingCount && syncStatus.pendingCount > 0
+                  ? `${syncStatus.pendingCount} تعديلات بانتظار المزامنة`
+                  : 'جميع بيانات الصلاة وسجلاتك محدثة ومحفوظة محلياً'}
+              </p>
+            </div>
+          </div>
+
+          {onSyncNow && (
+            <button
+              onClick={onSyncNow}
+              disabled={!syncStatus?.isOnline || syncStatus?.isSyncing}
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-islamic-800 hover:bg-islamic-900 dark:bg-gold-400 dark:hover:bg-gold-500 text-sand-50 dark:text-islamic-950 text-xs font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${syncStatus?.isSyncing ? 'animate-spin' : ''}`} />
+              <span>{syncStatus?.isSyncing ? 'جاري المزامنة...' : 'مزامنة الآن'}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>

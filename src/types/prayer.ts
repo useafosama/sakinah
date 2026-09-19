@@ -96,6 +96,7 @@ export interface PrayerLogRecord {
   scheduledTime: string; // HH:MM
   loggedAt: string; // ISO timestamp or HH:MM
   status: 'prayed_on_time' | 'prayed_late' | 'missed';
+  syncStatus?: 'synced' | 'pending' | 'failed';
   createdAt: number;
   updatedAt: number;
 }
@@ -193,3 +194,73 @@ export interface CompassOrientationState {
   turnDirection: 'left' | 'right' | 'aligned';
   diffDegrees: number;
 }
+
+// ----------------------------------------------------
+// Personal Prayer Streaks Types
+// ----------------------------------------------------
+
+export type DayCompletionStatus = 'completed' | 'incomplete' | 'today_in_progress';
+
+export interface DailyStreakDay {
+  date: string; // YYYY-MM-DD
+  dayNameAr: string; // 'السبت', 'الأحد', ...
+  dayLetterAr: string; // 'س', 'ح', 'ن', ...
+  completedPrayersCount: number; // 0 to 5
+  totalPrayersCount: number; // 5
+  status: DayCompletionStatus;
+  isToday: boolean;
+  isFuture: boolean;
+}
+
+export interface PrayerStreakData {
+  currentStreak: number; // Consecutive completed days
+  longestStreak: number; // Max consecutive completed days
+  completedDaysTotal: number; // Total completed days in recorded history
+  weeklyDays: DailyStreakDay[]; // Last 7 days in order
+  weeklyCompletedCount: number; // e.g. 5
+  monthlyCompletedCount: number; // e.g. 18
+  monthlyTotalDays: number; // e.g. 30
+  todayStatus: 'completed' | 'in_progress' | 'not_started';
+  todayCompletedCount: number;
+  completionPercentage: number;
+}
+
+// ----------------------------------------------------
+// Offline & Sync Types
+// ----------------------------------------------------
+
+export interface CachedPrayerTimesMeta {
+  source: string; // "TheShia"
+  cachedAt: number; // timestamp ms
+  humanAge: string; // e.g. "منذ ساعتين", "محفوظ محلياً"
+  date: string; // YYYY-MM-DD
+  lat: number;
+  lng: number;
+  tz: string;
+  method: string;
+  isStale: boolean;
+}
+
+export interface PendingSyncAction {
+  id: string;
+  action: 'save_log' | 'remove_log' | 'update_settings';
+  payload: {
+    dateStr?: string;
+    prayer?: ObligatoryPrayerId;
+    status?: 'prayed_on_time' | 'prayed_late' | 'missed';
+    scheduledTime?: string;
+    settings?: Partial<PrayerUserSettings>;
+    updatedAt: number;
+  };
+  timestamp: number;
+  retryCount: number;
+}
+
+export interface SyncStatusState {
+  isOnline: boolean;
+  pendingCount: number;
+  lastSyncedAt: number | null;
+  isSyncing: boolean;
+  syncError: string | null;
+}
+

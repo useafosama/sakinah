@@ -20,7 +20,7 @@ import {
   PRESET_PRAYER_CITIES
 } from './theShiaPrayerService';
 import {
-  getCachedTheShiaResponse,
+  getCachedTheShiaWithMeta,
   setCachedTheShiaResponse,
   getLogsForDate,
   savePrayerLog,
@@ -28,6 +28,8 @@ import {
   getStoredUserSettings,
   saveStoredUserSettings
 } from './prayerStorage';
+import { prayerRepository } from './prayerRepository';
+import { CachedPrayerTimesMeta } from '../types/prayer';
 
 export class PrayerEngine {
   private static instance: PrayerEngine;
@@ -42,28 +44,71 @@ export class PrayerEngine {
   }
 
   /**
-   * Fetch prayer times with caching, error handling, and timeout
+   * Fetch prayer times with offline caching, metadata and network fallback
+   */
+  public async getPrayerTimesWithMeta(
+    location: UserPrayerLocation,
+    dateStr: string = formatDateISO(new Date()),
+    method: string = 'Jafari'
+  ): Promise<{ data: TheShiaPrayerResponse; meta: CachedPrayerTimesMeta; isFromCache: boolean }> {
+    const isOnline = prayerRepository.isOnline();
+
+    if (!isOnline) {
+      const cached = getCachedTheShiaWithMeta(location.lat, location.lng, dateStr, method);
+      if (cached) {
+        return { data: cached.data, meta: cached.meta, isFromCache: true };
+      }
+      throw new Error('لا توجد بيانات محفوظة لهذا اليوم. يرجى الاتصال بالإنترنت لتحميل المواقيت.');
+    }
+
+    try {
+      const response = await fetchTheShiaPrayerTimes({
+        lat: location.lat,
+        lng: location.lng,
+        date: dateStr,
+        tz: location.tz || getUserTimeZone(),
+        method,
+      });
+
+      setCachedTheShiaResponse(location.lat, location.lng, dateStr, method, response);
+      const cached = getCachedTheShiaWithMeta(location.lat, location.lng, dateStr, method);
+      return {
+        data: response,
+        meta: cached?.meta || {
+          source: 'TheShia',
+          cachedAt: Date.now(),
+          humanAge: 'مباشر الآن',
+          date: dateStr,
+          lat: location.lat,
+          lng: location.lng,
+          tz: location.tz || '',
+          method,
+          isStale: false,
+        },
+        isFromCache: false,
+      };
+    } catch (networkErr: any) {
+      // Network failed - fallback to cached data if available
+      const cached = getCachedTheShiaWithMeta(location.lat, location.lng, dateStr, method);
+      if (cached) {
+        return { data: cached.data, meta: cached.meta, isFromCache: true };
+      }
+      throw new Error(
+        networkErr?.message || 'تعذر جلب مواقيت الصلاة ولا توجد بيانات محفوظة محلياً.'
+      );
+    }
+  }
+
+  /**
+   * Standard fetch prayer times
    */
   public async getPrayerTimesByDate(
     location: UserPrayerLocation,
     dateStr: string = formatDateISO(new Date()),
     method: string = 'Jafari'
   ): Promise<TheShiaPrayerResponse> {
-    const cached = getCachedTheShiaResponse(location.lat, location.lng, dateStr, method);
-    if (cached) {
-      return cached;
-    }
-
-    const response = await fetchTheShiaPrayerTimes({
-      lat: location.lat,
-      lng: location.lng,
-      date: dateStr,
-      tz: location.tz || getUserTimeZone(),
-      method,
-    });
-
-    setCachedTheShiaResponse(location.lat, location.lng, dateStr, method, response);
-    return response;
+    const result = await this.getPrayerTimesWithMeta(location, dateStr, method);
+    return result.data;
   }
 
   public async getTodayPrayerTimes(location: UserPrayerLocation): Promise<TheShiaPrayerResponse> {

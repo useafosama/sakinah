@@ -8,7 +8,9 @@ import {
   ObligatoryPrayerId,
   PrayerUserSettings,
   PrayerStatisticsData,
-  DayPrayerSummary
+  DayPrayerSummary,
+  PrayerStreakData,
+  CachedPrayerTimesMeta
 } from '../types/prayer';
 import { prayerEngine } from '../services/prayerEngine';
 import {
@@ -16,6 +18,7 @@ import {
   saveStoredUserSettings,
   getDaySummary,
   getWeekSummaries,
+  getPrayerStreak,
   calculatePrayerStatistics,
   clearAllPrayerLogs
 } from '../services/prayerStorage';
@@ -28,14 +31,18 @@ import {
   formatArabicDate,
   formatHijriDate
 } from '../services/theShiaPrayerService';
+import { useNetworkStatus } from './useNetworkStatus';
 import { useToast } from '../components/common/Toast';
 
 export function usePrayerEngine() {
   const { showToast } = useToast();
+  const { isOnline, showRestoredNotice, syncStatus, syncNow } = useNetworkStatus();
 
   const [settings, setSettings] = useState<PrayerUserSettings>(getStoredUserSettings);
   const [selectedDateStr, setSelectedDateStr] = useState<string>(() => formatDateISO(new Date()));
   const [data, setData] = useState<TheShiaPrayerResponse | null>(null);
+  const [cachedMeta, setCachedMeta] = useState<CachedPrayerTimesMeta | null>(null);
+  const [isFromCache, setIsFromCache] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [geoLoading, setGeoLoading] = useState<boolean>(false);
@@ -62,23 +69,29 @@ export function usePrayerEngine() {
     return selectedDateStr === formatDateISO(new Date());
   }, [selectedDateStr]);
 
-  // Current day data from API
+  // Current day data from API / Cache
   const currentDay: TheShiaPrayerDay | null = useMemo(() => {
     if (!data || !data.days || data.days.length === 0) return null;
     return data.days.find((d) => d.date === selectedDateStr) || data.days[0];
   }, [data, selectedDateStr]);
 
-  // Fetch timings
+  // Fetch timings with offline metadata & caching
   const loadTimings = useCallback(
     async (loc: UserPrayerLocation, dateStr: string) => {
       setLoading(true);
       setError(null);
       try {
-        const res = await prayerEngine.getPrayerTimesByDate(loc, dateStr, settings.calculationMethod);
-        setData(res);
+        const result = await prayerEngine.getPrayerTimesWithMeta(
+          loc,
+          dateStr,
+          settings.calculationMethod
+        );
+        setData(result.data);
+        setCachedMeta(result.meta);
+        setIsFromCache(result.isFromCache);
       } catch (err: any) {
         console.error('Failed to load prayer times:', err);
-        setError(err?.message || 'تعذر تحميل مواقيت الصلاة حاليًا. حاول مرة أخرى.');
+        setError(err?.message || 'تعذر تحميل مواقيت الصلاة. تحقق من الاتصال أو اختر يوماً محفوظاً.');
       } finally {
         setLoading(false);
       }
@@ -86,10 +99,21 @@ export function usePrayerEngine() {
     [settings.calculationMethod]
   );
 
-  // Load timings whenever location or date changes
+  // Load timings whenever location, date, or online status changes
   useEffect(() => {
     loadTimings(location, selectedDateStr);
-  }, [location, selectedDateStr, loadTimings]);
+  }, [location, selectedDateStr, isOnline, loadTimings]);
+
+  // Listen to cross-component data changes
+  useEffect(() => {
+    const handleDataChange = () => {
+      setLogsVersion((v) => v + 1);
+    };
+    window.addEventListener('sakinah:prayer-data-changed', handleDataChange);
+    return () => {
+      window.removeEventListener('sakinah:prayer-data-changed', handleDataChange);
+    };
+  }, []);
 
   // Central Countdown Timer (Once per second)
   useEffect(() => {
@@ -134,9 +158,13 @@ export function usePrayerEngine() {
     return items;
   }, [currentDay, selectedDateStr, now, nextPrayer, currentActivePrayer, isToday, logsVersion]);
 
-  // Quick log prayer
+  // Quick log prayer (works offline immediately)
   const quickLog = useCallback(
-    (prayer: ObligatoryPrayerId, scheduledTime24: string, customStatus?: 'prayed_on_time' | 'prayed_late' | 'missed') => {
+    (
+      prayer: ObligatoryPrayerId,
+      scheduledTime24: string,
+      customStatus?: 'prayed_on_time' | 'prayed_late' | 'missed'
+    ) => {
       const log = prayerEngine.quickLogPrayer(selectedDateStr, prayer, scheduledTime24, customStatus);
       setLogsVersion((v) => v + 1);
 
@@ -154,10 +182,11 @@ export function usePrayerEngine() {
         missed: 'فائتة',
       };
 
-      showToast(`تم تسجيل صلاة ${prayerNamesAr[prayer]} (${statusLabels[log.status]})`);
+      const offlineSuffix = !isOnline ? ' (حُفظ محلياً)' : '';
+      showToast(`تم تسجيل صلاة ${prayerNamesAr[prayer]} (${statusLabels[log.status]})${offlineSuffix}`);
       return log;
     },
-    [selectedDateStr, showToast]
+    [selectedDateStr, isOnline, showToast]
   );
 
   // Remove prayer log
@@ -179,6 +208,11 @@ export function usePrayerEngine() {
   const weekSummaries: DayPrayerSummary[] = useMemo(() => {
     return getWeekSummaries(selectedDate);
   }, [selectedDate, logsVersion]);
+
+  // Streak data (Personal prayer streak)
+  const streakData: PrayerStreakData = useMemo(() => {
+    return getPrayerStreak(new Date());
+  }, [logsVersion]);
 
   // Overall statistics
   const statistics: PrayerStatisticsData = useMemo(() => {
@@ -277,6 +311,7 @@ export function usePrayerEngine() {
     currentActivePrayer,
     daySummary,
     weekSummaries,
+    streakData,
     statistics,
     loading,
     error,
@@ -285,6 +320,14 @@ export function usePrayerEngine() {
     notificationStatus,
     formattedGregorianDate: formatArabicDate(selectedDate),
     formattedHijriDate: formatHijriDate(selectedDate),
+    // Offline & Sync info
+    isOnline,
+    showRestoredNotice,
+    syncStatus,
+    syncNow,
+    cachedMeta,
+    isFromCache,
+    // Actions
     quickLog,
     removeLog,
     requestLocation,

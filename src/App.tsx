@@ -25,6 +25,7 @@ import { ReadingModeModal } from './components/common/ReadingModeModal';
 import { PWAInstallModal } from './components/common/PWAInstallModal';
 import { PWAInstallBanner } from './components/common/PWAInstallBanner';
 import { WelcomeModal } from './components/common/WelcomeModal';
+import { OfflineBanner } from './components/common/OfflineBanner';
 import { ToastProvider } from './components/common/Toast';
 
 import { PageType, AdhkarCategory, HadithTopic, Dhikr, Hadith, DailyMessage } from './types';
@@ -348,6 +349,9 @@ export function AppContent() {
         decreaseFontSize={decreaseFontSize}
         resetSettings={resetSettings}
       />
+
+      {/* Offline Status & Sync Banner */}
+      <OfflineBanner />
     </div>
   );
 }

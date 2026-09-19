@@ -10,15 +10,18 @@ import {
   ShieldCheck,
   AlertTriangle
 } from 'lucide-react';
-import { PrayerStatisticsData } from '../../types/prayer';
+import { PrayerStatisticsData, PrayerStreakData } from '../../types/prayer';
+import { PrayerStreakCard } from './PrayerStreakCard';
 
 interface PrayerStatsTabProps {
   statistics: PrayerStatisticsData;
+  streakData?: PrayerStreakData;
   onClearHistory: () => void;
 }
 
 export const PrayerStatsTab: React.FC<PrayerStatsTabProps> = ({
   statistics,
+  streakData,
   onClearHistory,
 }) => {
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -52,6 +55,11 @@ export const PrayerStatsTab: React.FC<PrayerStatsTabProps> = ({
           </div>
         )}
       </div>
+
+      {/* Personal Prayer Streak Card */}
+      {streakData && (
+        <PrayerStreakCard streakData={streakData} />
+      )}
 
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
