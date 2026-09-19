@@ -20,6 +20,7 @@ import {
   ObligatoryPrayerId,
   PrayerId
 } from '../../types/prayer';
+import { PageType } from '../../types';
 import { PrayerStatusModal } from './PrayerStatusModal';
 
 const PRAYER_ICONS: Record<PrayerId, React.ElementType> = {
@@ -41,6 +42,7 @@ interface PrayerTodayTabProps {
   daySummary: DayPrayerSummary;
   isToday: boolean;
   qiblaAngle?: number;
+  onNavigate?: (page: PageType) => void;
   onQuickLog: (prayer: ObligatoryPrayerId, scheduledTime24: string, status?: 'prayed_on_time' | 'prayed_late' | 'missed') => void;
   onRemoveLog: (prayer: ObligatoryPrayerId) => void;
 }
@@ -51,6 +53,7 @@ export const PrayerTodayTab: React.FC<PrayerTodayTabProps> = ({
   daySummary,
   isToday,
   qiblaAngle,
+  onNavigate,
   onQuickLog,
   onRemoveLog,
 }) => {
@@ -320,8 +323,16 @@ export const PrayerTodayTab: React.FC<PrayerTodayTabProps> = ({
               </span>
               <div>
                 <div className="text-xs font-bold text-islamic-950 dark:text-night-text">الإمساك • القبلة</div>
-                <div className="text-[10px] text-stone-400 dark:text-night-muted">
-                  {qiblaAngle ? `القبلة: ${qiblaAngle.toFixed(0)}°` : 'قبل الفجر بـ 10 دقائق'}
+                <div className="text-[10px] text-stone-400 dark:text-night-muted flex items-center gap-1.5 mt-0.5">
+                  <span>{qiblaAngle ? `القبلة: ${qiblaAngle.toFixed(0)}°` : 'قبل الفجر بـ 10 دقائق'}</span>
+                  {onNavigate && qiblaAngle && (
+                    <button
+                      onClick={() => onNavigate('qibla')}
+                      className="text-islamic-800 dark:text-gold-400 font-bold underline cursor-pointer mr-1"
+                    >
+                      (فتح البوصلة 🧭)
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

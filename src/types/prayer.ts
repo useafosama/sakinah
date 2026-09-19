@@ -165,3 +165,31 @@ export interface PrayerStatisticsData {
   currentStreakDays: number;
   bestStreakDays: number;
 }
+
+export interface TheShiaQiblaResponse {
+  lat: number;
+  lng: number;
+  qibla: number; // degrees clockwise from true north
+  unit?: string;
+}
+
+export interface QiblaDirectionInfo {
+  qiblaAngle: number; // 0-360 clockwise from True North
+  cardinalAr: string; // e.g. "الجنوب الشرقي"
+  cardinalEn: string; // e.g. "SE"
+  distanceKm: number; // distance to Makkah in KM
+}
+
+export interface CompassOrientationState {
+  deviceHeading: number | null; // 0-360 degrees from True North (null if unsupported/denied)
+  smoothedHeading: number | null;
+  qiblaAngle: number; // absolute bearing to Makkah from True North
+  relativeAngle: number; // angle to rotate Kaaba needle relative to device top
+  accuracy: number | null;
+  hasSensors: boolean;
+  permissionState: 'granted' | 'prompt' | 'denied' | 'unsupported';
+  isAligned: boolean; // within ±3 degrees
+  isClose: boolean; // within ±10 degrees
+  turnDirection: 'left' | 'right' | 'aligned';
+  diffDegrees: number;
+}

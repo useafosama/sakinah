@@ -1,4 +1,4 @@
-export type PageType = 'home' | 'prayer-times' | 'adhkar' | 'hadith' | 'favorites' | 'sources';
+export type PageType = 'home' | 'prayer-times' | 'qibla' | 'adhkar' | 'hadith' | 'favorites' | 'sources';
 
 export * from './prayer';
 

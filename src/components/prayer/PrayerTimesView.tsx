@@ -13,8 +13,10 @@ import {
   Sparkles,
   BarChart3,
   Sliders,
-  CalendarDays
+  CalendarDays,
+  Compass
 } from 'lucide-react';
+import { PageType } from '../../types';
 import { usePrayerEngine } from '../../hooks/usePrayerEngine';
 import { PrayerCityModal } from './PrayerCityModal';
 import { PrayerTodayTab } from './PrayerTodayTab';
@@ -24,7 +26,11 @@ import { PrayerSettingsTab } from './PrayerSettingsTab';
 
 type TabType = 'today' | 'history' | 'stats' | 'settings';
 
-export const PrayerTimesView: React.FC = () => {
+interface PrayerTimesViewProps {
+  onNavigate?: (page: PageType) => void;
+}
+
+export const PrayerTimesView: React.FC<PrayerTimesViewProps> = ({ onNavigate }) => {
   const [activeTab, setActiveTab] = useState<TabType>('today');
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
 
@@ -138,6 +144,18 @@ export const PrayerTimesView: React.FC = () => {
               <MapPin className="w-3.5 h-3.5 text-gold-600 dark:text-gold-400" />
               <span>تغيير المدينة</span>
             </button>
+
+            {/* Qibla Direction Button */}
+            {onNavigate && (
+              <button
+                onClick={() => onNavigate('qibla')}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sand-100 hover:bg-sand-200 dark:bg-night-800 dark:hover:bg-night-700 text-islamic-900 dark:text-gold-400 border border-sand-200/80 dark:border-night-border text-xs font-bold transition-colors cursor-pointer"
+                title="تحديد اتجاه القبلة عبر البوصلة"
+              >
+                <Compass className="w-3.5 h-3.5 text-gold-600 dark:text-gold-400" />
+                <span>القبلة</span>
+              </button>
+            )}
 
             {/* Refresh */}
             <button
@@ -280,6 +298,7 @@ export const PrayerTimesView: React.FC = () => {
               daySummary={daySummary}
               isToday={isToday}
               qiblaAngle={data?.meta?.qibla}
+              onNavigate={onNavigate}
               onQuickLog={quickLog}
               onRemoveLog={removeLog}
             />

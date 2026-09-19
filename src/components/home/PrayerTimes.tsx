@@ -13,7 +13,8 @@ import {
   Navigation,
   ArrowLeft,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  Compass
 } from 'lucide-react';
 import { PageType } from '../../types';
 import { useTheShiaPrayerTimes } from '../../hooks/useTheShiaPrayerTimes';
@@ -283,13 +284,23 @@ export const PrayerTimes: React.FC<PrayerTimesProps> = ({ onNavigate }) => {
           </div>
 
           {onNavigate && (
-            <button
-              onClick={() => onNavigate('prayer-times')}
-              className="inline-flex items-center gap-1 text-islamic-800 dark:text-gold-400 font-bold hover:underline cursor-pointer"
-            >
-              <span>فتح صفحة المواقيت والتنقل بين الأيام</span>
-              <ArrowLeft className="w-3 h-3" />
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => onNavigate('qibla')}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-sand-100 hover:bg-sand-200 dark:bg-night-800 dark:hover:bg-night-700 text-islamic-900 dark:text-gold-400 font-bold text-xs transition-colors cursor-pointer border border-sand-200 dark:border-night-border"
+              >
+                <Compass className="w-3.5 h-3.5 text-gold-600 dark:text-gold-400" />
+                <span>بوصلة القبلة</span>
+              </button>
+
+              <button
+                onClick={() => onNavigate('prayer-times')}
+                className="inline-flex items-center gap-1 text-islamic-800 dark:text-gold-400 font-bold hover:underline cursor-pointer"
+              >
+                <span>صفحة المواقيت والتنقل</span>
+                <ArrowLeft className="w-3 h-3" />
+              </button>
+            </div>
           )}
         </div>
       </div>

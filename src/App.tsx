@@ -12,6 +12,7 @@ import { CategoryGrid } from './components/home/CategoryGrid';
 import { HadithSpotlight } from './components/home/HadithSpotlight';
 import { SuggestedVideos } from './components/home/SuggestedVideos';
 import { PrayerTimesView } from './components/prayer/PrayerTimesView';
+import { QiblaView } from './components/qibla/QiblaView';
 import { AdhkarView } from './components/adhkar/AdhkarView';
 import { HadithView } from './components/hadith/HadithView';
 import { FavoritesView } from './components/favorites/FavoritesView';
@@ -206,7 +207,11 @@ export function AppContent() {
           )}
 
           {currentPage === 'prayer-times' && (
-            <PrayerTimesView />
+            <PrayerTimesView onNavigate={handleNavigate} />
+          )}
+
+          {currentPage === 'qibla' && (
+            <QiblaView onNavigate={handleNavigate} />
           )}
 
           {currentPage === 'adhkar' && (
