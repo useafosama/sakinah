@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -11,10 +11,16 @@ import {
   Download,
   Sparkles,
   AlertTriangle,
-  Trash2
+  Trash2,
+  Heart,
+  Bell,
+  Clock
 } from 'lucide-react';
 import { ReadingSettings } from '../../types';
+import { CharitySettings, CharityReminderPreset } from '../../types/charity';
+import { charityService, CHARITY_PRESET_TIMES } from '../../services/charityService';
 import { prayerRepository } from '../../services/prayerRepository';
+import { prayerNotificationService } from '../../services/prayerNotificationService';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -47,7 +53,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const [confirmResetSettings, setConfirmResetSettings] = useState(false);
   const [confirmFullReset, setConfirmFullReset] = useState(false);
+  const [charitySettings, setCharitySettings] = useState<CharitySettings>(() => charityService.getSettings());
+  const [notifPermission, setNotifPermission] = useState(() => prayerNotificationService.getStatus().permission);
   const pendingActionsCount = prayerRepository.getPendingActions().length;
+
+  useEffect(() => {
+    if (isOpen) {
+      setCharitySettings(charityService.getSettings());
+      setNotifPermission(prayerNotificationService.getStatus().permission);
+    }
+  }, [isOpen]);
+
+  const handleUpdateCharity = (updates: Partial<CharitySettings>) => {
+    const updated = charityService.saveSettings(updates);
+    setCharitySettings(updated);
+  };
+
+  const handleRequestNotif = async () => {
+    const perm = await prayerNotificationService.requestPermission();
+    setNotifPermission(perm);
+    if (perm === 'granted') {
+      handleUpdateCharity({ notificationsEnabled: true });
+    }
+  };
 
   const handleResetSettingsConfirm = () => {
     resetSettings();
@@ -260,6 +288,85 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     className="w-4 h-4 accent-islamic-800 dark:accent-gold-400 rounded cursor-pointer"
                   />
                 </label>
+              </div>
+
+              {/* Charity & Good Deeds Settings */}
+              <div className="bg-white dark:bg-night-850 p-4 rounded-2xl border border-sand-200/80 dark:border-night-border shadow-2xs space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-stone-700 dark:text-night-text flex items-center gap-1.5">
+                    <Heart className="w-3.5 h-3.5 text-gold-600 dark:text-gold-400 fill-current" />
+                    تذكير الخير والصدقة اليومية
+                  </span>
+                  <input
+                    type="checkbox"
+                    checked={charitySettings.enabled}
+                    onChange={(e) => handleUpdateCharity({ enabled: e.target.checked })}
+                    className="w-4 h-4 accent-islamic-800 dark:accent-gold-400 rounded cursor-pointer"
+                  />
+                </div>
+
+                {charitySettings.enabled && (
+                  <div className="space-y-3 pt-2 border-t border-sand-100 dark:border-night-border text-xs">
+                    {/* Reminder Timing Preset */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-stone-600 dark:text-night-muted flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-gold-500" />
+                        وقت التذكير اليومي:
+                      </span>
+                      <select
+                        value={charitySettings.reminderPreset}
+                        onChange={(e) => {
+                          const preset = e.target.value as CharityReminderPreset;
+                          const info = CHARITY_PRESET_TIMES[preset];
+                          handleUpdateCharity({
+                            reminderPreset: preset,
+                            reminderTime: preset !== 'custom' ? info.time : charitySettings.reminderTime,
+                          });
+                        }}
+                        className="px-2.5 py-1.5 rounded-xl bg-sand-50 dark:bg-night-900 border border-sand-200 dark:border-night-border text-xs font-bold text-stone-800 dark:text-night-text focus:outline-none"
+                      >
+                        <option value="after_fajr">🌅 بعد الفجر (05:30)</option>
+                        <option value="morning">☀️ صباحاً (09:00)</option>
+                        <option value="after_asr">🌇 بعد العصر (16:30)</option>
+                        <option value="evening">🌙 مساءً (20:30)</option>
+                        <option value="custom">⏰ وقت مخصص...</option>
+                      </select>
+                    </div>
+
+                    {charitySettings.reminderPreset === 'custom' && (
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-stone-500 text-[11px]">حدد الوقت المخصص:</span>
+                        <input
+                          type="time"
+                          value={charitySettings.reminderTime}
+                          onChange={(e) => handleUpdateCharity({ reminderTime: e.target.value })}
+                          className="px-2.5 py-1 rounded-lg bg-sand-50 dark:bg-night-900 border border-sand-200 dark:border-night-border text-xs font-bold text-stone-800 dark:text-night-text focus:outline-none"
+                        />
+                      </div>
+                    )}
+
+                    {/* Notification Permission State */}
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-stone-600 dark:text-night-muted flex items-center gap-1">
+                        <Bell className="w-3.5 h-3.5 text-gold-500" />
+                        إشعارات المتصفح:
+                      </span>
+                      {notifPermission === 'granted' ? (
+                        <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                          مفعلة ✓
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleRequestNotif}
+                          className="px-2.5 py-1 bg-gold-100 hover:bg-gold-200 dark:bg-night-800 text-gold-800 dark:text-gold-400 rounded-lg text-[11px] font-bold transition-colors cursor-pointer"
+                        >
+                          تفعيل الإشعارات
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Reset Controls Section */}

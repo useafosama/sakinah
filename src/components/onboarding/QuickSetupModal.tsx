@@ -28,6 +28,8 @@ import { prayerRepository } from '../../services/prayerRepository';
 import { prayerNotificationService } from '../../services/prayerNotificationService';
 import { PrayerCityModal } from '../prayer/PrayerCityModal';
 import { UserPrayerLocation, PrayerUserSettings } from '../../types/prayer';
+import { CharitySettings, CharityReminderPreset } from '../../types/charity';
+import { charityService, CHARITY_PRESET_TIMES } from '../../services/charityService';
 import { useToast } from '../common/Toast';
 
 interface QuickSetupModalProps {
@@ -59,6 +61,9 @@ export const QuickSetupModal: React.FC<QuickSetupModalProps> = ({
   const [prayerSettings, setPrayerSettings] = useState<PrayerUserSettings>(() =>
     prayerRepository.getSettings()
   );
+  const [charitySettings, setCharitySettings] = useState<CharitySettings>(() =>
+    charityService.getSettings()
+  );
   const [geoLoading, setGeoLoading] = useState(false);
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
   const [notifState, setNotifState] = useState(prayerNotificationService.getStatus());
@@ -69,27 +74,33 @@ export const QuickSetupModal: React.FC<QuickSetupModalProps> = ({
     setNameInput(userPreferences.displayName || '');
   }, [userPreferences.displayName]);
 
-  // Refresh prayer settings on open
+  // Refresh prayer and charity settings on open
   React.useEffect(() => {
     if (isOpen) {
       setPrayerSettings(prayerRepository.getSettings());
+      setCharitySettings(charityService.getSettings());
       setNotifState(prayerNotificationService.getStatus());
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const totalWizardSteps = 6; // Steps 1 to 6
+  const totalWizardSteps = 7; // Steps 1 to 7
 
   const handleNext = () => {
     if (step === 1) {
       onUpdatePreferences({ displayName: nameInput.trim() });
     }
-    setStep((prev) => Math.min(prev + 1, 7));
+    setStep((prev) => Math.min(prev + 1, 8));
   };
 
   const handleBack = () => {
     setStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleUpdateCharitySettings = (updates: Partial<CharitySettings>) => {
+    const updated = charityService.saveSettings(updates);
+    setCharitySettings(updated);
   };
 
   const handleSaveLocation = (loc: UserPrayerLocation) => {
@@ -222,8 +233,8 @@ export const QuickSetupModal: React.FC<QuickSetupModalProps> = ({
             </button>
           </div>
 
-          {/* Progress Indicator (For wizard steps 1-6) */}
-          {step >= 1 && step <= 6 && (
+          {/* Progress Indicator (For wizard steps 1-7) */}
+          {step >= 1 && step <= 7 && (
             <div className="mb-4">
               <div className="w-full bg-sand-200 dark:bg-night-800 h-1.5 rounded-full overflow-hidden">
                 <div
@@ -239,7 +250,8 @@ export const QuickSetupModal: React.FC<QuickSetupModalProps> = ({
                   {step === 3 && 'طريقة الحساب'}
                   {step === 4 && 'تفعيل التنبيهات'}
                   {step === 5 && 'تخصيص التذكيرات'}
-                  {step === 6 && 'الصفحة الرئيسية'}
+                  {step === 6 && 'الخير والصدقة'}
+                  {step === 7 && 'الصفحة الرئيسية'}
                 </span>
               </div>
             </div>
@@ -259,7 +271,7 @@ export const QuickSetupModal: React.FC<QuickSetupModalProps> = ({
                     أهلاً بك في سَكِينَة
                   </h2>
                   <p className="text-xs sm:text-sm text-stone-600 dark:text-night-muted leading-relaxed max-w-sm mx-auto">
-                    طريقك اليومي لطمأنينة القلب، مع مواقيت صلاة دقيقة، وأذكار صحيحة، وأحاديث نبوية موثقة.
+                    طريقك اليومي لطمأنينة القلب، مع مواقيت صلاة دقيقة، وأذكار صحيحة، وتذكير دائم بالخير والصدقة.
                   </p>
                 </div>
 
@@ -593,8 +605,110 @@ export const QuickSetupModal: React.FC<QuickSetupModalProps> = ({
               </div>
             )}
 
-            {/* STEP 6: Home Layout & Cards Customization */}
+            {/* STEP 6: Charity & Good Deeds Reminder */}
             {step === 6 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <span className="p-2.5 rounded-2xl bg-gold-500/10 dark:bg-gold-400/10 text-gold-600 dark:text-gold-400 shrink-0">
+                    <Sparkles className="w-5 h-5" />
+                  </span>
+                  <div>
+                    <h4 className="text-base font-bold text-islamic-950 dark:text-night-text font-arabic-heading">
+                      تذكير الخير والصدقة 🌱
+                    </h4>
+                    <p className="text-xs text-stone-500 dark:text-night-muted">
+                      تذكير بسيط يساعدك ألا يمر يوم دون عمل خير
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-night-850 p-4 rounded-2xl border border-sand-200/80 dark:border-night-border space-y-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-stone-700 dark:text-night-text">
+                      هل تريد أن تذكّرك سكينة بالخير والصدقة؟
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateCharitySettings({ enabled: true })}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          charitySettings.enabled
+                            ? 'bg-islamic-800 dark:bg-gold-500 text-sand-50 dark:text-islamic-950 shadow-xs'
+                            : 'bg-sand-100 dark:bg-night-800 text-stone-600 dark:text-night-muted'
+                        }`}
+                      >
+                        تفعيل التذكير
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateCharitySettings({ enabled: false })}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                          !charitySettings.enabled
+                            ? 'bg-islamic-800 dark:bg-gold-500 text-sand-50 dark:text-islamic-950 shadow-xs'
+                            : 'bg-sand-100 dark:bg-night-800 text-stone-600 dark:text-night-muted'
+                        }`}
+                      >
+                        ليس الآن
+                      </button>
+                    </div>
+                  </div>
+
+                  {charitySettings.enabled && (
+                    <div className="pt-3 border-t border-sand-100 dark:border-night-border space-y-3">
+                      <label className="text-xs font-bold text-stone-700 dark:text-night-text block">
+                        متى نذكّرك؟
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {(['after_fajr', 'morning', 'after_asr', 'evening', 'custom'] as CharityReminderPreset[]).map((preset) => {
+                          const info = CHARITY_PRESET_TIMES[preset];
+                          const isSelected = charitySettings.reminderPreset === preset;
+                          return (
+                            <button
+                              key={preset}
+                              type="button"
+                              onClick={() => {
+                                handleUpdateCharitySettings({
+                                  reminderPreset: preset,
+                                  reminderTime: preset !== 'custom' ? info.time : charitySettings.reminderTime,
+                                });
+                              }}
+                              className={`p-2.5 rounded-xl border text-right transition-all flex items-center justify-between cursor-pointer ${
+                                isSelected
+                                  ? 'bg-gold-50 dark:bg-night-800 border-gold-500/60 dark:border-gold-500/60 text-islamic-950 dark:text-gold-300 shadow-2xs'
+                                  : 'bg-sand-50/70 dark:bg-night-900 border-sand-200 dark:border-night-border text-stone-700 dark:text-night-muted'
+                              }`}
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <span>{info.icon}</span>
+                                <span className="text-xs font-bold">{info.label}</span>
+                              </div>
+                              {isSelected && <Check className="w-3.5 h-3.5 text-gold-600 dark:text-gold-400" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {charitySettings.reminderPreset === 'custom' && (
+                        <div className="pt-1 flex items-center gap-2">
+                          <label className="text-xs font-semibold text-stone-600 dark:text-night-muted">
+                            اختر الوقت المفضل:
+                          </label>
+                          <input
+                            type="time"
+                            value={charitySettings.reminderTime}
+                            onChange={(e) => handleUpdateCharitySettings({ reminderTime: e.target.value })}
+                            className="px-3 py-1.5 rounded-xl bg-sand-50 dark:bg-night-900 border border-sand-200 dark:border-night-border text-xs font-bold text-stone-800 dark:text-night-text focus:outline-none"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* STEP 7: Home Layout & Cards Customization */}
+            {step === 7 && (
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <span className="p-2.5 rounded-2xl bg-islamic-100 dark:bg-night-800 text-islamic-800 dark:text-gold-400 shrink-0">
@@ -673,8 +787,8 @@ export const QuickSetupModal: React.FC<QuickSetupModalProps> = ({
               </div>
             )}
 
-            {/* STEP 7: Final Summary */}
-            {step === 7 && (
+            {/* STEP 8: Final Summary */}
+            {step === 8 && (
               <div className="text-center py-2 space-y-4">
                 <div className="w-14 h-14 mx-auto rounded-3xl bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center border border-emerald-300/40 text-emerald-600 dark:text-emerald-400">
                   <CheckCircle2 className="w-8 h-8" />
@@ -713,9 +827,18 @@ export const QuickSetupModal: React.FC<QuickSetupModalProps> = ({
                   </div>
 
                   <div className="flex justify-between items-center py-1 border-b border-sand-100 dark:border-night-border">
-                    <span className="text-stone-500 dark:text-night-muted">التنبيهات:</span>
+                    <span className="text-stone-500 dark:text-night-muted">تنبيهات الصلاة:</span>
                     <span className="font-bold text-islamic-950 dark:text-night-text">
                       {notifState.permission === 'granted' ? 'مفعلة' : 'غير مفعلة'}
+                    </span>
+                  </div>
+
+                  <div className="flex justify-between items-center py-1 border-b border-sand-100 dark:border-night-border">
+                    <span className="text-stone-500 dark:text-night-muted">تذكير الخير والصدقة:</span>
+                    <span className="font-bold text-islamic-950 dark:text-night-text">
+                      {charitySettings.enabled
+                        ? `مفعل (${CHARITY_PRESET_TIMES[charitySettings.reminderPreset]?.label || charitySettings.reminderTime})`
+                        : 'غير مفعل'}
                     </span>
                   </div>
 
@@ -738,8 +861,8 @@ export const QuickSetupModal: React.FC<QuickSetupModalProps> = ({
             )}
           </div>
 
-          {/* Footer Navigation Bar (For Steps 1 to 6) */}
-          {step >= 1 && step <= 6 && (
+          {/* Footer Navigation Bar (For Steps 1 to 7) */}
+          {step >= 1 && step <= 7 && (
             <div className="pt-3 border-t border-sand-200/70 dark:border-night-border flex items-center justify-between gap-2">
               <button
                 onClick={handleBack}
@@ -754,7 +877,7 @@ export const QuickSetupModal: React.FC<QuickSetupModalProps> = ({
                   onClick={handleNext}
                   className="px-4 py-2 rounded-xl bg-islamic-800 hover:bg-islamic-900 dark:bg-gold-500 dark:hover:bg-gold-600 text-sand-50 dark:text-islamic-950 text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer"
                 >
-                  <span>{step === 6 ? 'مراجعة الإعداد' : 'التالي'}</span>
+                  <span>{step === 7 ? 'مراجعة الإعداد' : 'التالي'}</span>
                   <ChevronLeft className="w-3.5 h-3.5" />
                 </button>
               </div>

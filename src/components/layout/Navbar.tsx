@@ -33,6 +33,7 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'home', label: 'الرئيسية' },
     { id: 'prayer-times', label: 'مواقيت الصلاة' },
     { id: 'qibla', label: 'القبلة' },
+    { id: 'charity', label: 'الخير والصدقة' },
     { id: 'adhkar', label: 'الأذكار' },
     { id: 'hadith', label: 'الأحاديث' },
     { id: 'favorites', label: 'المفضلة' },

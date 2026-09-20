@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
 export const DEFAULT_HOME_LAYOUT: HomeCardId[] = [
   'prayerTimes',
   'dailyMessage',
+  'charityToday',
   'dailyWird',
   'heroVerse',
   'dailyDhikr',
@@ -21,6 +22,7 @@ export const DEFAULT_HOME_LAYOUT: HomeCardId[] = [
 export const ALL_HOME_CARDS: { id: HomeCardId; label: string; description: string; icon: string }[] = [
   { id: 'prayerTimes', label: 'مواقيت الصلاة والعد التنازلي', description: 'عرض الصلاة القادمة وأوقات الصلوات', icon: 'Clock' },
   { id: 'dailyMessage', label: 'رسالة وتذكرة اليوم', description: 'رسالة إيمانية متجددة تريح القلب', icon: 'Sparkles' },
+  { id: 'charityToday', label: 'خير اليوم والصدقات', description: 'تذكير وتسجيل عمل الخير والصدقة اليومية', icon: 'HeartHandshake' },
   { id: 'dailyWird', label: 'الورد اليومي واستكمال القراءة', description: 'أذكار الصباح والمساء والتقدم', icon: 'BookOpen' },
   { id: 'heroVerse', label: 'آية السكينة والتدبر', description: 'آية قرآنية مختارة مع الترجمة', icon: 'Book' },
   { id: 'dailyDhikr', label: 'ذكر اليوم مع العداد التفاعلي', description: 'ذكر مختار للتسبيح اليومي', icon: 'Heart' },

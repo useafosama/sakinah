@@ -7,6 +7,7 @@ export interface OnboardingState {
 
 export type HomeCardId =
   | 'prayerTimes'
+  | 'charityToday'
   | 'dailyMessage'
   | 'dailyWird'
   | 'heroVerse'

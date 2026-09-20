@@ -26,6 +26,9 @@ import { PWAInstallModal } from './components/common/PWAInstallModal';
 import { PWAInstallBanner } from './components/common/PWAInstallBanner';
 import { WelcomeModal } from './components/common/WelcomeModal';
 import { QuickSetupModal } from './components/onboarding/QuickSetupModal';
+import { CharityCard } from './components/charity/CharityCard';
+import { LogGoodDeedModal } from './components/charity/LogGoodDeedModal';
+import { CharityHarvestView } from './components/charity/CharityHarvestView';
 import { OfflineBanner } from './components/common/OfflineBanner';
 import { ToastProvider } from './components/common/Toast';
 
@@ -38,6 +41,7 @@ import { useTheme } from './hooks/useTheme';
 import { useLastPosition } from './hooks/useLastPosition';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import { useOnboarding } from './hooks/useOnboarding';
+import { useCharity } from './hooks/useCharity';
 
 import adhkarDataRaw from './data/adhkar.json';
 import hadithsDataRaw from './data/hadiths.json';
@@ -78,6 +82,24 @@ export function AppContent() {
     handleResetSettings,
     handleFullReset,
   } = useOnboarding();
+
+  // Charity & Good Deeds Hook
+  const {
+    deeds: charityDeeds,
+    todayDeeds: charityTodayDeeds,
+    hasLoggedToday: charityHasLoggedToday,
+    weeklySummary: charityWeeklySummary,
+    streak: charityStreak,
+    randomSecretIdea,
+    refreshSecretIdea,
+    isLoggingOpen: isCharityLoggingOpen,
+    openLogging: openCharityLogging,
+    closeLogging: closeCharityLogging,
+    logDeed: logCharityDeed,
+    logSecretDeed,
+    deleteDeed: deleteCharityDeed,
+    snoozeReminder: snoozeCharityReminder,
+  } = useCharity();
 
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(() => {
     try {
@@ -152,6 +174,18 @@ export function AppContent() {
         return <PrayerTimes key="prayerTimes" onNavigate={handleNavigate} />;
       case 'dailyMessage':
         return <DailyMessageCard key="dailyMessage" messages={dailyMessagesData} />;
+      case 'charityToday':
+        return (
+          <CharityCard
+            key="charityToday"
+            todayDeeds={charityTodayDeeds}
+            hasLoggedToday={charityHasLoggedToday}
+            streakDays={charityStreak.currentStreakDays}
+            onOpenLogging={openCharityLogging}
+            onSnooze={snoozeCharityReminder}
+            onNavigate={handleNavigate}
+          />
+        );
       case 'dailyWird':
         return (
           <DailyWird
@@ -261,6 +295,21 @@ export function AppContent() {
 
           {currentPage === 'qibla' && (
             <QiblaView onNavigate={handleNavigate} />
+          )}
+
+          {currentPage === 'charity' && (
+            <CharityHarvestView
+              deeds={charityDeeds}
+              todayDeeds={charityTodayDeeds}
+              weeklySummary={charityWeeklySummary}
+              streak={charityStreak}
+              randomSecretIdea={randomSecretIdea}
+              onRefreshSecretIdea={refreshSecretIdea}
+              onOpenLogging={openCharityLogging}
+              onLogSecretDeed={logSecretDeed}
+              onDeleteDeed={deleteCharityDeed}
+              onNavigate={handleNavigate}
+            />
           )}
 
           {currentPage === 'adhkar' && (
@@ -412,6 +461,13 @@ export function AppContent() {
         onToggleHomeCard={toggleHomeCard}
         onMoveHomeCard={moveHomeCard}
         onRequestNotificationPermission={requestNotificationPermission}
+      />
+
+      {/* Log Good Deed Modal */}
+      <LogGoodDeedModal
+        isOpen={isCharityLoggingOpen}
+        onClose={closeCharityLogging}
+        onLogDeed={logCharityDeed}
       />
 
       {/* Offline Status & Sync Banner */}
