@@ -777,9 +777,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           key={ev.id}
                           className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between text-xs"
                         >
-                          <div className="flex items-center gap-2.5">
-                            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                          <div className="flex items-center gap-2.5 flex-wrap">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                             <span className="font-semibold text-emerald-300">{ev.eventName}</span>
+                            {ev.metadata?.name && (
+                              <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[11px] font-medium border border-emerald-500/30 flex items-center gap-1">
+                                <span>👤</span>
+                                <span>{String(ev.metadata.name)}</span>
+                              </span>
+                            )}
                             <span className="text-slate-400 font-mono">{ev.path}</span>
                           </div>
                           <div className="flex items-center gap-3 text-slate-400">
@@ -1277,8 +1283,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 second: '2-digit'
                               })}
                             </td>
-                            <td className="p-3 font-semibold text-emerald-400">
-                              {ev.eventName}
+                            <td className="p-3">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-emerald-400">
+                                  {ev.eventName}
+                                </span>
+                                {ev.metadata?.name && (
+                                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-[10px] font-medium border border-emerald-500/30 flex items-center gap-1">
+                                    <span>👤</span>
+                                    <span>{String(ev.metadata.name)}</span>
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="p-3 text-slate-400 font-mono text-[11px]">{ev.path}</td>
                             <td className="p-3 text-slate-300">{ev.country || 'Unknown'}</td>

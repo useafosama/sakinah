@@ -184,7 +184,9 @@ export function useOnboarding(): UseOnboardingReturn {
       completeOnboarding(name);
       setOnboardingState(getStoredOnboardingState());
       setIsOpen(false);
-      analytics.track('quick_setup_completed');
+      analytics.track('quick_setup_completed', {
+        name: name && name.trim() ? name.trim() : 'زائر كريم'
+      });
     },
     [userPreferences.displayName]
   );
