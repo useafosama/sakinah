@@ -887,7 +887,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
             )}
           </>
-        ) : null}
+        ) : (
+          <div className="min-h-[350px] flex flex-col items-center justify-center gap-3 bg-slate-900/40 rounded-2xl border border-white/5 p-8 text-center">
+            <p className="text-sm text-slate-300 font-medium">تعذر تحميل بيانات التحليلات</p>
+            <p className="text-xs text-slate-500 max-w-sm">يرجى التحقق من اتصالك وإعادة المحاولة</p>
+            <button
+              onClick={() => fetchStats(range, false)}
+              className="mt-2 px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-medium hover:bg-emerald-500/30 transition-colors flex items-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              إعادة المحاولة
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );

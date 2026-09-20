@@ -23,34 +23,38 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
   const url = new URL(request.url);
   const range = url.searchParams.get('range') || '7d';
   const customStart = url.searchParams.get('startDate');
-  const customEnd = url.searchParams.get('endDate');
 
   const sql = getDb(env);
 
   try {
-    // Determine interval filter for SQL
-    let intervalSql = `NOW() - INTERVAL '7 days'`;
+    const now = new Date();
+    let startThreshold: Date;
     let isHourly = false;
 
     if (range === 'today') {
-      intervalSql = `CURRENT_DATE`;
+      startThreshold = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       isHourly = true;
     } else if (range === 'yesterday') {
-      intervalSql = `CURRENT_DATE - INTERVAL '1 day'`;
+      startThreshold = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
       isHourly = true;
     } else if (range === '30d') {
-      intervalSql = `NOW() - INTERVAL '30 days'`;
+      startThreshold = new Date(now.getTime() - 30 * 86400000);
     } else if (range === '90d') {
-      intervalSql = `NOW() - INTERVAL '90 days'`;
+      startThreshold = new Date(now.getTime() - 90 * 86400000);
     } else if (range === 'custom' && customStart) {
-      intervalSql = `'${customStart.replace(/'/g, '')}'::timestamptz`;
+      startThreshold = new Date(customStart);
+    } else {
+      // 7d default
+      startThreshold = new Date(now.getTime() - 7 * 86400000);
     }
+
+    const startIso = startThreshold.toISOString();
 
     // 1. KPIs
     const [kpiRow] = await sql`
       WITH filtered_sessions AS (
         SELECT * FROM analytics_sessions
-        WHERE started_at >= ${sql.raw(intervalSql)}
+        WHERE started_at >= ${startIso}
       ),
       active_now AS (
         SELECT COUNT(DISTINCT visitor_id)::int as active_count
@@ -102,7 +106,7 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
           COUNT(*)::int as sessions,
           COALESCE(SUM(pageviews_count), 0)::int as page_views
         FROM analytics_sessions
-        WHERE started_at >= ${sql.raw(intervalSql)}
+        WHERE started_at >= ${startIso}
         GROUP BY TO_CHAR(started_at, 'HH24:00'), DATE_TRUNC('hour', started_at)
         ORDER BY DATE_TRUNC('hour', started_at) ASC
       `;
@@ -114,7 +118,7 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
           COUNT(*)::int as sessions,
           COALESCE(SUM(pageviews_count), 0)::int as page_views
         FROM analytics_sessions
-        WHERE started_at >= ${sql.raw(intervalSql)}
+        WHERE started_at >= ${startIso}
         GROUP BY TO_CHAR(started_at, 'YYYY-MM-DD')
         ORDER BY TO_CHAR(started_at, 'YYYY-MM-DD') ASC
       `;
@@ -133,7 +137,7 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
         COALESCE(NULLIF(referrer, ''), 'Direct') as raw_source,
         COUNT(*)::int as count
       FROM analytics_sessions
-      WHERE started_at >= ${sql.raw(intervalSql)}
+      WHERE started_at >= ${startIso}
       GROUP BY raw_source
       ORDER BY count DESC
       LIMIT 10
@@ -164,7 +168,7 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
         COALESCE(country, 'Unknown') as code,
         COUNT(DISTINCT visitor_id)::int as count
       FROM analytics_sessions
-      WHERE started_at >= ${sql.raw(intervalSql)}
+      WHERE started_at >= ${startIso}
       GROUP BY code
       ORDER BY count DESC
       LIMIT 15
@@ -211,7 +215,7 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
         COALESCE(device_type, 'desktop') as device,
         COUNT(*)::int as count
       FROM analytics_sessions
-      WHERE started_at >= ${sql.raw(intervalSql)}
+      WHERE started_at >= ${startIso}
       GROUP BY device
       ORDER BY count DESC
     `;
@@ -227,7 +231,7 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
         COALESCE(browser, 'Other') as browser,
         COUNT(*)::int as count
       FROM analytics_sessions
-      WHERE started_at >= ${sql.raw(intervalSql)}
+      WHERE started_at >= ${startIso}
       GROUP BY browser
       ORDER BY count DESC
       LIMIT 8
@@ -248,7 +252,8 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
       '/adhkar': 'الأذكار اليومية',
       '/hadith': 'الأحاديث النبوية',
       '/favorites': 'المفضلة',
-      '/sources': 'المصادر والمنهجية'
+      '/sources': 'المصادر والمنهجية',
+      '/admin': 'لوحة تحكم المشرف'
     };
 
     const pageRows = await sql`
@@ -256,7 +261,7 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
         path,
         COUNT(*)::int as views
       FROM analytics_events
-      WHERE created_at >= ${sql.raw(intervalSql)} AND event_name = 'page_view'
+      WHERE created_at >= ${startIso} AND event_name = 'page_view'
       GROUP BY path
       ORDER BY views DESC
       LIMIT 10
@@ -275,7 +280,7 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
         event_name,
         COUNT(*)::int as count
       FROM analytics_events
-      WHERE created_at >= ${sql.raw(intervalSql)}
+      WHERE created_at >= ${startIso}
       GROUP BY event_name
     `;
 
