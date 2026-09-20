@@ -1,5 +1,6 @@
 import { adminCorsHeaders } from '../../_db';
 import { signToken, authenticateAdminRequest } from '../../_auth';
+import { checkAdminAuthRateLimit, recordAdminAuthFailure, resetAdminAuthFailures } from '../../_rateLimit';
 
 export async function onRequestOptions(context: { request: Request }) {
   return new Response(null, {
@@ -11,6 +12,24 @@ export async function onRequestOptions(context: { request: Request }) {
 export async function onRequestPost(context: { request: Request; env: Record<string, any> }) {
   const { request, env } = context;
   const headers = adminCorsHeaders(request);
+
+  // 1. Check brute force rate limit (5 failed attempts per 5 mins per IP)
+  const rateLimit = checkAdminAuthRateLimit(request, 5, 300000);
+  if (!rateLimit.allowed) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: 'تم تجاوز عدد محاولات الدخول المسموح بها، يرجى المحاولة بعد قليل'
+      }),
+      {
+        status: 429,
+        headers: {
+          ...headers,
+          'Retry-After': String(rateLimit.retryAfter || 300)
+        }
+      }
+    );
+  }
 
   try {
     const rawBody = await request.text();
@@ -54,11 +73,16 @@ export async function onRequestPost(context: { request: Request; env: Record<str
     const password = (body.password || '').trim();
 
     if (!password || password !== expectedPassword.trim()) {
+      // Record failed attempt for rate limiting
+      recordAdminAuthFailure(request, 300000);
       return new Response(JSON.stringify({ success: false, error: 'كلمة المرور غير صحيحة' }), {
         status: 401,
         headers
       });
     }
+
+    // Reset failed attempts upon successful login
+    resetAdminAuthFailures(request);
 
     const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
     const token = await signToken({ role: 'admin', exp: expiresAt }, secret.trim());
@@ -81,4 +105,5 @@ export async function onRequestPost(context: { request: Request; env: Record<str
     });
   }
 }
+
 

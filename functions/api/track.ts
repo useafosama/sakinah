@@ -1,4 +1,9 @@
 import { getDb, publicCorsHeaders } from '../_db';
+import { checkAnalyticsRateLimit } from '../_rateLimit';
+
+const ID_REGEX = /^[a-zA-Z0-9_-]{8,64}$/;
+const EVENT_NAME_REGEX = /^[a-z0-9_]{1,50}$/;
+const SENSITIVE_KEY_PATTERNS = ['amount', 'money', 'email', 'phone', 'password', 'token', 'auth', 'secret', 'card', 'cvv', 'ssn'];
 
 export async function onRequestOptions() {
   return new Response(null, {
@@ -11,6 +16,18 @@ export async function onRequestPost(context: { request: Request; env: Record<str
   const { request, env } = context;
   const headers = publicCorsHeaders();
 
+  // 1. Rate Limiting Check (60 req/min per IP)
+  const rateLimit = checkAnalyticsRateLimit(request, 60, 60000);
+  if (!rateLimit.allowed) {
+    return new Response(JSON.stringify({ success: false, error: 'Too Many Requests' }), {
+      status: 429,
+      headers: {
+        ...headers,
+        'Retry-After': String(rateLimit.retryAfter || 60)
+      }
+    });
+  }
+
   try {
     const rawBody = await request.text();
     if (!rawBody) {
@@ -20,15 +37,34 @@ export async function onRequestPost(context: { request: Request; env: Record<str
       });
     }
 
-    const payload = JSON.parse(rawBody);
-    const events: Array<any> = Array.isArray(payload.events) ? payload.events : [payload];
+    // 2. Body size limit (max 32 KB)
+    if (rawBody.length > 32768) {
+      return new Response(JSON.stringify({ success: false, error: 'Payload too large' }), {
+        status: 400,
+        headers
+      });
+    }
 
-    if (events.length === 0) {
+    let payload: any;
+    try {
+      payload = JSON.parse(rawBody);
+    } catch {
+      return new Response(JSON.stringify({ success: false, error: 'Invalid JSON' }), {
+        status: 400,
+        headers
+      });
+    }
+
+    const rawEvents: Array<any> = Array.isArray(payload?.events) ? payload.events : [payload];
+    if (rawEvents.length === 0) {
       return new Response(JSON.stringify({ success: true, count: 0 }), {
         status: 200,
         headers
       });
     }
+
+    // Cap batch size to max 10 events per request
+    const events = rawEvents.slice(0, 10);
 
     // Extract geo and user agent info from Cloudflare Edge
     const cfCountry = (request.headers.get('cf-ipcountry') || 'Unknown').toUpperCase();
@@ -37,35 +73,45 @@ export async function onRequestPost(context: { request: Request; env: Record<str
     const sql = getDb(env);
 
     for (const ev of events) {
-      const visitorId = (ev.visitorId || '').trim();
-      const sessionId = (ev.sessionId || '').trim();
-      const eventName = (ev.eventName || 'page_view').trim();
-      const path = (ev.path || '/').slice(0, 255);
-      const referrer = (ev.referrer || referrerHeader || '').slice(0, 500);
+      if (!ev || typeof ev !== 'object') continue;
+
+      const visitorId = typeof ev.visitorId === 'string' ? ev.visitorId.trim() : '';
+      const sessionId = typeof ev.sessionId === 'string' ? ev.sessionId.trim() : '';
+      const rawEventName = typeof ev.eventName === 'string' ? ev.eventName.trim().toLowerCase() : 'page_view';
+      const eventName = EVENT_NAME_REGEX.test(rawEventName) ? rawEventName : 'custom_event';
+      const path = (typeof ev.path === 'string' ? ev.path : '/').slice(0, 255);
+      const referrer = (typeof ev.referrer === 'string' ? ev.referrer : referrerHeader).slice(0, 500);
       const country = cfCountry.length <= 10 ? cfCountry : 'Unknown';
-      const deviceType = (ev.deviceType || 'desktop').slice(0, 20);
-      const browser = (ev.browser || 'Unknown').slice(0, 50);
-      const os = (ev.os || 'Unknown').slice(0, 50);
+      const deviceType = (typeof ev.deviceType === 'string' ? ev.deviceType : 'desktop').slice(0, 20);
+      const browser = (typeof ev.browser === 'string' ? ev.browser : 'Unknown').slice(0, 50);
+      const os = (typeof ev.os === 'string' ? ev.os : 'Unknown').slice(0, 50);
 
-      const visitorName = (ev.visitorName || ev.metadata?.name || '').trim().slice(0, 100);
+      const rawVisitorName = typeof ev.visitorName === 'string' ? ev.visitorName : (typeof ev.metadata?.name === 'string' ? ev.metadata.name : '');
+      const visitorName = rawVisitorName.trim().slice(0, 100);
 
-      // Clean metadata strictly avoiding amounts or sensitive data
-      const metadata: Record<string, any> = {};
-      if (ev.metadata && typeof ev.metadata === 'object') {
+      // Validate IDs format
+      if (!ID_REGEX.test(visitorId) || !ID_REGEX.test(sessionId)) continue;
+
+      // Clean and sanitize metadata
+      const metadata: Record<string, string | number | boolean> = {};
+      if (ev.metadata && typeof ev.metadata === 'object' && !Array.isArray(ev.metadata)) {
+        let keyCount = 0;
         for (const [k, v] of Object.entries(ev.metadata)) {
-          if (
-            !k.toLowerCase().includes('amount') &&
-            !k.toLowerCase().includes('money') &&
-            !k.toLowerCase().includes('email') &&
-            !k.toLowerCase().includes('phone') &&
-            !k.toLowerCase().includes('password')
-          ) {
-            metadata[k] = v;
+          if (keyCount >= 20) break; // Max 20 keys
+          const cleanKey = k.toLowerCase().trim().slice(0, 50);
+          
+          const isSensitive = SENSITIVE_KEY_PATTERNS.some((pattern) => cleanKey.includes(pattern));
+          if (isSensitive) continue;
+
+          if (typeof v === 'string') {
+            metadata[cleanKey] = v.slice(0, 255);
+            keyCount++;
+          } else if (typeof v === 'number' || typeof v === 'boolean') {
+            metadata[cleanKey] = v;
+            keyCount++;
           }
         }
       }
-
-      if (!visitorId || !sessionId) continue;
 
       if (eventName === 'session_leave') {
         // User closed the tab or navigated away -> mark session inactive immediately
@@ -123,4 +169,5 @@ export async function onRequestPost(context: { request: Request; env: Record<str
     });
   }
 }
+
 
