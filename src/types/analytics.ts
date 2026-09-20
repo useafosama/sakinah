@@ -38,6 +38,13 @@ export interface AnalyticsEventPayload {
 
 export type TimeRange = 'today' | 'yesterday' | '7d' | '30d' | '90d' | 'custom';
 
+export interface GrowthMetrics {
+  visitorsGrowth: number; // percentage change vs prev period
+  sessionsGrowth: number;
+  pageViewsGrowth: number;
+  returningGrowth: number;
+}
+
 export interface AnalyticsKPIs {
   totalVisitors: number;
   activeVisitorsNow: number;
@@ -46,6 +53,7 @@ export interface AnalyticsKPIs {
   totalSessions: number;
   avgSessionDurationSeconds: number;
   bounceRatePercentage: number;
+  growth?: GrowthMetrics;
 }
 
 export interface ChartDataPoint {
@@ -121,6 +129,31 @@ export interface EventLogItem {
   metadata?: Record<string, any>;
 }
 
+export interface RadarPageItem {
+  path: string;
+  title: string;
+  count: number;
+}
+
+export interface RadarCountryItem {
+  code: string;
+  name: string;
+  count: number;
+}
+
+export interface RealTimeRadarData {
+  activeCount: number;
+  activePages: RadarPageItem[];
+  activeCountries: RadarCountryItem[];
+  livePulseFeed: EventLogItem[];
+}
+
+export interface IslamicInsightsData {
+  topDhikrCategories: Array<{ category: string; label: string; count: number; percentage: number }>;
+  charityCategories: Array<{ type: string; label: string; count: number; percentage: number }>;
+  hourlyPeaks: Array<{ hour: number; label: string; count: number; prayerContext?: string }>;
+}
+
 export interface AnalyticsDashboardData {
   range: TimeRange;
   kpis: AnalyticsKPIs;
@@ -134,4 +167,6 @@ export interface AnalyticsDashboardData {
   funnel: FunnelStep[];
   retention: RetentionStats;
   recentEvents: EventLogItem[];
+  radar?: RealTimeRadarData;
+  islamicInsights?: IslamicInsightsData;
 }

@@ -29,28 +29,37 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
   try {
     const now = new Date();
     let startThreshold: Date;
+    let prevThreshold: Date;
     let isHourly = false;
 
     if (range === 'today') {
       startThreshold = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      prevThreshold = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
       isHourly = true;
     } else if (range === 'yesterday') {
       startThreshold = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+      prevThreshold = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2);
       isHourly = true;
     } else if (range === '30d') {
       startThreshold = new Date(now.getTime() - 30 * 86400000);
+      prevThreshold = new Date(now.getTime() - 60 * 86400000);
     } else if (range === '90d') {
       startThreshold = new Date(now.getTime() - 90 * 86400000);
+      prevThreshold = new Date(now.getTime() - 180 * 86400000);
     } else if (range === 'custom' && customStart) {
       startThreshold = new Date(customStart);
+      const span = now.getTime() - startThreshold.getTime();
+      prevThreshold = new Date(startThreshold.getTime() - span);
     } else {
       // 7d default
       startThreshold = new Date(now.getTime() - 7 * 86400000);
+      prevThreshold = new Date(now.getTime() - 14 * 86400000);
     }
 
     const startIso = startThreshold.toISOString();
+    const prevIso = prevThreshold.toISOString();
 
-    // 1. KPIs
+    // 1. Current KPIs & Previous Period for Growth
     const [kpiRow] = await sql`
       WITH filtered_sessions AS (
         SELECT * FROM analytics_sessions
@@ -82,9 +91,30 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
       FROM filtered_sessions
     `;
 
+    const [prevRow] = await sql`
+      SELECT
+        COALESCE(COUNT(DISTINCT visitor_id), 0)::int as prev_visitors,
+        COALESCE(COUNT(*), 0)::int as prev_sessions,
+        COALESCE(SUM(pageviews_count), 0)::int as prev_pageviews
+      FROM analytics_sessions
+      WHERE started_at >= ${prevIso} AND started_at < ${startIso}
+    `;
+
     const totalSessions = kpiRow?.total_sessions || 0;
     const bounceCount = kpiRow?.bounce_count || 0;
     const bounceRate = totalSessions > 0 ? Math.round((bounceCount / totalSessions) * 100) : 0;
+
+    const calcGrowth = (curr: number, prev: number) => {
+      if (prev === 0) return curr > 0 ? 100 : 0;
+      return Math.round(((curr - prev) / prev) * 100);
+    };
+
+    const growth = {
+      visitorsGrowth: calcGrowth(kpiRow?.total_visitors || 0, prevRow?.prev_visitors || 0),
+      sessionsGrowth: calcGrowth(totalSessions, prevRow?.prev_sessions || 0),
+      pageViewsGrowth: calcGrowth(kpiRow?.total_pageviews || 0, prevRow?.prev_pageviews || 0),
+      returningGrowth: 0
+    };
 
     const kpis = {
       totalVisitors: kpiRow?.total_visitors || 0,
@@ -93,7 +123,8 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
       totalPageViews: kpiRow?.total_pageviews || 0,
       totalSessions: totalSessions,
       avgSessionDurationSeconds: kpiRow?.avg_duration || 0,
-      bounceRatePercentage: bounceRate
+      bounceRatePercentage: bounceRate,
+      growth
     };
 
     // 2. Chart series
@@ -378,6 +409,133 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
       metadata: r.metadata
     }));
 
+    // 11. Real-Time Radar
+    const activePageRows = await sql`
+      SELECT
+        COALESCE(entry_path, '/') as path,
+        COUNT(DISTINCT visitor_id)::int as count
+      FROM analytics_sessions
+      WHERE is_active = TRUE AND last_activity_at >= NOW() - INTERVAL '1 minute'
+      GROUP BY path
+      ORDER BY count DESC
+    `;
+
+    const activeCountryRows = await sql`
+      SELECT
+        COALESCE(country, 'Unknown') as code,
+        COUNT(DISTINCT visitor_id)::int as count
+      FROM analytics_sessions
+      WHERE is_active = TRUE AND last_activity_at >= NOW() - INTERVAL '1 minute'
+      GROUP BY code
+      ORDER BY count DESC
+    `;
+
+    const radar = {
+      activeCount: kpis.activeVisitorsNow,
+      activePages: activePageRows.map((r: any) => ({
+        path: r.path,
+        title: pageNameMap[r.path] || r.path,
+        count: r.count
+      })),
+      activeCountries: activeCountryRows.map((r: any) => ({
+        code: r.code,
+        name: countryNameMap[r.code] || `${r.code} 🌍`,
+        count: r.count
+      })),
+      livePulseFeed: recentEvents.slice(0, 8)
+    };
+
+    // 12. Islamic Insights
+    const dhikrCatRows = await sql`
+      SELECT
+        COALESCE(metadata->>'category', 'morning') as category,
+        COUNT(*)::int as count
+      FROM analytics_events
+      WHERE created_at >= ${startIso} AND (event_name = 'dhikr_opened' OR event_name = 'dhikr_category_opened' OR event_name = 'dhikr_completed')
+      GROUP BY category
+      ORDER BY count DESC
+    `;
+
+    const dhikrCategoryLabels: Record<string, string> = {
+      morning: 'أذكار الصباح 🌅',
+      evening: 'أذكار المساء 🌙',
+      sleep: 'أذكار النوم 🛏️',
+      after_prayer: 'أذكار بعد الصلاة 🕌',
+      general: 'أذكار عامة 📿'
+    };
+
+    const totalDhikrCatCount = dhikrCatRows.reduce((sum: number, r: any) => sum + r.count, 0) || 1;
+    const topDhikrCategories = dhikrCatRows.map((r: any) => ({
+      category: r.category,
+      label: dhikrCategoryLabels[r.category] || r.category,
+      count: r.count,
+      percentage: Math.round((r.count / totalDhikrCatCount) * 100)
+    }));
+
+    const charityCatRows = await sql`
+      SELECT
+        COALESCE(metadata->>'deed_type', 'financial') as deed_type,
+        COUNT(*)::int as count
+      FROM analytics_events
+      WHERE created_at >= ${startIso} AND (event_name = 'good_deed_logged' OR event_name = 'secret_good_deed_logged')
+      GROUP BY deed_type
+      ORDER BY count DESC
+    `;
+
+    const charityLabels: Record<string, string> = {
+      financial: 'صدقة مالية 💰',
+      food: 'إطعام طعام 🍲',
+      water: 'سقي ماء 💧',
+      help: 'مساعدة شخص 🤝',
+      good_deed: 'عمل خير عام 🤍',
+      animal: 'إطعام حيوان 🐾',
+      parents: 'بر الوالدين 🌸',
+      other: 'أعمال أخرى ✨'
+    };
+
+    const totalCharityCount = charityCatRows.reduce((sum: number, r: any) => sum + r.count, 0) || 1;
+    const charityCategories = charityCatRows.map((r: any) => ({
+      type: r.deed_type,
+      label: charityLabels[r.deed_type] || r.deed_type,
+      count: r.count,
+      percentage: Math.round((r.count / totalCharityCount) * 100)
+    }));
+
+    const hourlyRows = await sql`
+      SELECT
+        EXTRACT(HOUR FROM created_at)::int as hour,
+        COUNT(*)::int as count
+      FROM analytics_events
+      WHERE created_at >= ${startIso}
+      GROUP BY hour
+      ORDER BY hour ASC
+    `;
+
+    const hourMap = new Map<number, number>();
+    hourlyRows.forEach((r: any) => hourMap.set(r.hour, r.count));
+
+    const getPrayerContext = (h: number) => {
+      if (h >= 4 && h <= 6) return 'الفجر 🌅';
+      if (h >= 12 && h <= 14) return 'الظهر ☀️';
+      if (h >= 15 && h <= 17) return 'العصر ⛅';
+      if (h >= 18 && h <= 19) return 'المغرب 🌇';
+      if (h >= 20 && h <= 22) return 'العشاء 🌙';
+      return undefined;
+    };
+
+    const hourlyPeaks = Array.from({ length: 24 }, (_, h) => ({
+      hour: h,
+      label: `${h.toString().padStart(2, '0')}:00`,
+      count: hourMap.get(h) || 0,
+      prayerContext: getPrayerContext(h)
+    }));
+
+    const islamicInsights = {
+      topDhikrCategories,
+      charityCategories,
+      hourlyPeaks
+    };
+
     const responsePayload = {
       range,
       kpis,
@@ -390,7 +548,9 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
       features,
       funnel,
       retention,
-      recentEvents
+      recentEvents,
+      radar,
+      islamicInsights
     };
 
     return new Response(JSON.stringify(responsePayload), {
