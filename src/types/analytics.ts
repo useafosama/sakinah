@@ -20,7 +20,8 @@ export type AnalyticsEventName =
   | 'secret_good_deed_logged'
   | 'pwa_install_prompt'
   | 'pwa_installed'
-  | 'heartbeat';
+  | 'heartbeat'
+  | 'session_leave';
 
 export interface AnalyticsEventPayload {
   eventName: AnalyticsEventName;

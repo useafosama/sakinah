@@ -59,7 +59,7 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
       active_now AS (
         SELECT COUNT(DISTINCT visitor_id)::int as active_count
         FROM analytics_sessions
-        WHERE last_activity_at >= NOW() - INTERVAL '5 minutes'
+        WHERE is_active = TRUE AND last_activity_at >= NOW() - INTERVAL '1 minute'
       ),
       returning_v AS (
         SELECT COUNT(DISTINCT visitor_id)::int as returning_count

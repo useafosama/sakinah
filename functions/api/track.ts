@@ -31,7 +31,6 @@ export async function onRequestPost(context: { request: Request; env: Record<str
 
     // Extract geo and user agent info from Cloudflare Edge
     const cfCountry = (request.headers.get('cf-ipcountry') || 'Unknown').toUpperCase();
-    const userAgent = request.headers.get('user-agent') || '';
     const referrerHeader = request.headers.get('referer') || '';
 
     const sql = getDb(env);
@@ -65,6 +64,18 @@ export async function onRequestPost(context: { request: Request; env: Record<str
 
       if (!visitorId || !sessionId) continue;
 
+      if (eventName === 'session_leave') {
+        // User closed the tab or navigated away -> mark session inactive immediately
+        await sql`
+          UPDATE analytics_sessions
+          SET is_active = FALSE,
+              last_activity_at = NOW(),
+              duration_seconds = GREATEST(analytics_sessions.duration_seconds, EXTRACT(EPOCH FROM (NOW() - analytics_sessions.started_at))::int)
+          WHERE id = ${sessionId}
+        `;
+        continue;
+      }
+
       // 1. Upsert Visitor
       await sql`
         INSERT INTO analytics_visitors (id, first_seen_at, last_seen_at, total_sessions, total_pageviews, first_referrer, first_country)
@@ -74,18 +85,19 @@ export async function onRequestPost(context: { request: Request; env: Record<str
           total_pageviews = analytics_visitors.total_pageviews + ${eventName === 'page_view' ? 1 : 0}
       `;
 
-      // 2. Upsert Session
+      // 2. Upsert Session with is_active = TRUE
       await sql`
-        INSERT INTO analytics_sessions (id, visitor_id, started_at, last_activity_at, duration_seconds, pageviews_count, events_count, device_type, browser, os, country, referrer, entry_path)
-        VALUES (${sessionId}, ${visitorId}, NOW(), NOW(), 0, ${eventName === 'page_view' ? 1 : 0}, 1, ${deviceType}, ${browser}, ${os}, ${country}, ${referrer}, ${path})
+        INSERT INTO analytics_sessions (id, visitor_id, started_at, last_activity_at, duration_seconds, pageviews_count, events_count, device_type, browser, os, country, referrer, entry_path, is_active)
+        VALUES (${sessionId}, ${visitorId}, NOW(), NOW(), 0, ${eventName === 'page_view' ? 1 : 0}, 1, ${deviceType}, ${browser}, ${os}, ${country}, ${referrer}, ${path}, TRUE)
         ON CONFLICT (id) DO UPDATE SET
+          is_active = TRUE,
           last_activity_at = NOW(),
           duration_seconds = GREATEST(analytics_sessions.duration_seconds, EXTRACT(EPOCH FROM (NOW() - analytics_sessions.started_at))::int),
           pageviews_count = analytics_sessions.pageviews_count + ${eventName === 'page_view' ? 1 : 0},
           events_count = analytics_sessions.events_count + 1
       `;
 
-      // 3. Insert Event (omit heartbeat from events table to conserve space, heartbeat already touches session)
+      // 3. Insert Event (omit heartbeat from events table)
       if (eventName !== 'heartbeat') {
         await sql`
           INSERT INTO analytics_events (visitor_id, session_id, event_name, path, metadata, country, device_type, created_at)
@@ -101,7 +113,7 @@ export async function onRequestPost(context: { request: Request; env: Record<str
   } catch (error) {
     // Analytics ingestion must never cause 500 breakages for client apps
     return new Response(JSON.stringify({ success: false, error: 'Ingestion error' }), {
-      status: 200, // Return 200 to not trigger errors on browser beacons
+      status: 200,
       headers: corsHeaders()
     });
   }

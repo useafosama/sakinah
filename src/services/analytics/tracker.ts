@@ -241,24 +241,43 @@ class AnalyticsTracker {
 
   private setupHeartbeat() {
     if (typeof window === 'undefined') return;
-    // Send heartbeat every 3 minutes when page is active to keep session duration accurate
+    // Send heartbeat every 30 seconds when tab is active to keep real-time precision high
     window.setInterval(() => {
       if (document.visibilityState === 'visible') {
         this.track('heartbeat');
       }
-    }, 3 * 60 * 1000);
+    }, 30 * 1000);
   }
 
   private setupUnloadFlush() {
     if (typeof window === 'undefined') return;
+
+    const handleLeave = () => {
+      // Create session_leave event and flush immediately
+      const payload: AnalyticsEventPayload = {
+        eventName: 'session_leave',
+        path: window.location.pathname || '/',
+        visitorId: this.visitorId || this.getOrCreateVisitorId(),
+        sessionId: this.sessionId || this.getOrCreateSessionId(),
+        deviceType: this.detectDeviceType(),
+        browser: this.detectBrowser(),
+        os: this.detectOS(),
+        timestamp: new Date().toISOString()
+      };
+      this.queue.push(payload);
+      this.flush();
+    };
+
     window.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
-        this.flush();
+        handleLeave();
+      } else if (document.visibilityState === 'visible') {
+        this.track('heartbeat');
       }
     });
-    window.addEventListener('beforeunload', () => {
-      this.flush();
-    });
+
+    window.addEventListener('pagehide', handleLeave);
+    window.addEventListener('beforeunload', handleLeave);
   }
 }
 
