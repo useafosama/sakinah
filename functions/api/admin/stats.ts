@@ -1,22 +1,23 @@
-import { getDb, corsHeaders } from '../../_db';
+import { getDb, adminCorsHeaders } from '../../_db';
 import { authenticateAdminRequest } from '../../_auth';
 
-export async function onRequestOptions() {
+export async function onRequestOptions(context: { request: Request }) {
   return new Response(null, {
     status: 204,
-    headers: corsHeaders()
+    headers: adminCorsHeaders(context.request)
   });
 }
 
 export async function onRequestGet(context: { request: Request; env: Record<string, any> }) {
   const { request, env } = context;
+  const headers = adminCorsHeaders(request);
 
   // 1. Verify Admin Authentication
   const isAuthed = await authenticateAdminRequest(request, env);
   if (!isAuthed) {
     return new Response(JSON.stringify({ success: false, error: 'غير مصرح بالدخول (Unauthorized)' }), {
       status: 401,
-      headers: corsHeaders()
+      headers
     });
   }
 
@@ -24,9 +25,8 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
   const range = url.searchParams.get('range') || '7d';
   const customStart = url.searchParams.get('startDate');
 
-  const sql = getDb(env);
-
   try {
+    const sql = getDb(env);
     const now = new Date();
     let startThreshold: Date;
     let prevThreshold: Date;
@@ -559,12 +559,12 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
 
     return new Response(JSON.stringify(responsePayload), {
       status: 200,
-      headers: corsHeaders()
+      headers
     });
-  } catch (error: any) {
-    return new Response(JSON.stringify({ success: false, error: error.message }), {
+  } catch {
+    return new Response(JSON.stringify({ success: false, error: 'تعذر جلب الإحصائيات من قاعدة البيانات' }), {
       status: 500,
-      headers: corsHeaders()
+      headers
     });
   }
 }

@@ -1,42 +1,67 @@
-import { corsHeaders } from '../../_db';
+import { adminCorsHeaders } from '../../_db';
 import { signToken, authenticateAdminRequest } from '../../_auth';
 
-const DEFAULT_ADMIN_PASSWORD = 'sakinah_admin_2026';
-
-export async function onRequestOptions() {
+export async function onRequestOptions(context: { request: Request }) {
   return new Response(null, {
     status: 204,
-    headers: corsHeaders()
+    headers: adminCorsHeaders(context.request)
   });
 }
 
 export async function onRequestPost(context: { request: Request; env: Record<string, any> }) {
   const { request, env } = context;
+  const headers = adminCorsHeaders(request);
 
   try {
-    const body = await request.json() as any;
+    const rawBody = await request.text();
+    let body: any = {};
+    if (rawBody) {
+      try {
+        body = JSON.parse(rawBody);
+      } catch {
+        return new Response(JSON.stringify({ success: false, error: 'طلب غير صالح (Invalid JSON)' }), {
+          status: 400,
+          headers
+        });
+      }
+    }
 
     if (body.action === 'verify') {
       const isAuthed = await authenticateAdminRequest(request, env);
       return new Response(JSON.stringify({ success: isAuthed, valid: isAuthed }), {
         status: isAuthed ? 200 : 401,
-        headers: corsHeaders()
+        headers
+      });
+    }
+
+    const expectedPassword = env?.ADMIN_PASSWORD;
+    const secret = env?.ADMIN_SECRET;
+
+    if (!expectedPassword || typeof expectedPassword !== 'string' || !expectedPassword.trim()) {
+      return new Response(JSON.stringify({ success: false, error: 'إعدادات المشرف غير مهيأة على الخادم' }), {
+        status: 500,
+        headers
+      });
+    }
+
+    if (!secret || typeof secret !== 'string' || !secret.trim()) {
+      return new Response(JSON.stringify({ success: false, error: 'مفتاح المصادقة الأمني غير مهيأ على الخادم' }), {
+        status: 500,
+        headers
       });
     }
 
     const password = (body.password || '').trim();
-    const expectedPassword = (env && env.ADMIN_PASSWORD) || DEFAULT_ADMIN_PASSWORD;
 
-    if (!password || password !== expectedPassword) {
+    if (!password || password !== expectedPassword.trim()) {
       return new Response(JSON.stringify({ success: false, error: 'كلمة المرور غير صحيحة' }), {
         status: 401,
-        headers: corsHeaders()
+        headers
       });
     }
 
-    const secret = (env && env.ADMIN_SECRET) || undefined;
     const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
-    const token = await signToken({ role: 'admin', exp: expiresAt }, secret);
+    const token = await signToken({ role: 'admin', exp: expiresAt }, secret.trim());
 
     return new Response(
       JSON.stringify({
@@ -46,13 +71,14 @@ export async function onRequestPost(context: { request: Request; env: Record<str
       }),
       {
         status: 200,
-        headers: corsHeaders()
+        headers
       }
     );
-  } catch (error: any) {
-    return new Response(JSON.stringify({ success: false, error: error.message }), {
-      status: 400,
-      headers: corsHeaders()
+  } catch {
+    return new Response(JSON.stringify({ success: false, error: 'حدث خطأ أثناء معالجة الطلب' }), {
+      status: 500,
+      headers
     });
   }
 }
+

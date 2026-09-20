@@ -1,21 +1,22 @@
-import { getDb, corsHeaders } from '../_db';
+import { getDb, publicCorsHeaders } from '../_db';
 
 export async function onRequestOptions() {
   return new Response(null, {
     status: 204,
-    headers: corsHeaders()
+    headers: publicCorsHeaders()
   });
 }
 
 export async function onRequestPost(context: { request: Request; env: Record<string, any> }) {
   const { request, env } = context;
+  const headers = publicCorsHeaders();
 
   try {
     const rawBody = await request.text();
     if (!rawBody) {
       return new Response(JSON.stringify({ success: true, count: 0 }), {
         status: 200,
-        headers: corsHeaders()
+        headers
       });
     }
 
@@ -25,7 +26,7 @@ export async function onRequestPost(context: { request: Request; env: Record<str
     if (events.length === 0) {
       return new Response(JSON.stringify({ success: true, count: 0 }), {
         status: 200,
-        headers: corsHeaders()
+        headers
       });
     }
 
@@ -112,13 +113,14 @@ export async function onRequestPost(context: { request: Request; env: Record<str
 
     return new Response(JSON.stringify({ success: true, processed: events.length }), {
       status: 200,
-      headers: corsHeaders()
+      headers
     });
-  } catch (error) {
-    // Analytics ingestion must never cause 500 breakages for client apps
+  } catch {
+    // Analytics ingestion must never cause 500 breakages for client apps, and never leak internal db errors
     return new Response(JSON.stringify({ success: false, error: 'Ingestion error' }), {
       status: 200,
-      headers: corsHeaders()
+      headers
     });
   }
 }
+

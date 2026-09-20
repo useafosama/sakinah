@@ -1,6 +1,8 @@
-const DEFAULT_ADMIN_SECRET = 'sakinah_secret_hmac_key_2026_secure_edge_auth';
+export async function signToken(payload: Record<string, any>, secret: string): Promise<string> {
+  if (!secret || typeof secret !== 'string' || !secret.trim()) {
+    throw new Error('ADMIN_SECRET environment variable is not configured');
+  }
 
-export async function signToken(payload: Record<string, any>, secret: string = DEFAULT_ADMIN_SECRET): Promise<string> {
   const enc = new TextEncoder();
   const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g, '');
   const body = btoa(JSON.stringify(payload)).replace(/=/g, '');
@@ -8,7 +10,7 @@ export async function signToken(payload: Record<string, any>, secret: string = D
 
   const key = await crypto.subtle.importKey(
     'raw',
-    enc.encode(secret),
+    enc.encode(secret.trim()),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']
@@ -23,9 +25,11 @@ export async function signToken(payload: Record<string, any>, secret: string = D
   return `${data}.${sigBase64}`;
 }
 
-export async function verifyToken(token: string, secret: string = DEFAULT_ADMIN_SECRET): Promise<Record<string, any> | null> {
+export async function verifyToken(token: string, secret: string): Promise<Record<string, any> | null> {
   try {
     if (!token || typeof token !== 'string') return null;
+    if (!secret || typeof secret !== 'string' || !secret.trim()) return null;
+
     const parts = token.split('.');
     if (parts.length !== 3) return null;
 
@@ -35,7 +39,7 @@ export async function verifyToken(token: string, secret: string = DEFAULT_ADMIN_
     const enc = new TextEncoder();
     const key = await crypto.subtle.importKey(
       'raw',
-      enc.encode(secret),
+      enc.encode(secret.trim()),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['verify']
@@ -65,7 +69,12 @@ export async function authenticateAdminRequest(request: Request, env?: Record<st
   const token = authHeader.replace(/^Bearer\s+/i, '').trim();
   if (!token) return false;
 
-  const secret = (env && env.ADMIN_SECRET) || DEFAULT_ADMIN_SECRET;
+  const secret = env?.ADMIN_SECRET;
+  if (!secret || typeof secret !== 'string' || !secret.trim()) {
+    return false;
+  }
+
   const verified = await verifyToken(token, secret);
   return !!(verified && verified.role === 'admin');
 }
+
