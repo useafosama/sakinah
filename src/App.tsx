@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Navbar } from './components/layout/Navbar';
 import { MobileNav } from './components/layout/MobileNav';
 import { Footer } from './components/layout/Footer';
@@ -11,12 +11,18 @@ import { PrayerTimes } from './components/home/PrayerTimes';
 import { CategoryGrid } from './components/home/CategoryGrid';
 import { HadithSpotlight } from './components/home/HadithSpotlight';
 import { SuggestedVideos } from './components/home/SuggestedVideos';
-import { PrayerTimesView } from './components/prayer/PrayerTimesView';
-import { QiblaView } from './components/qibla/QiblaView';
-import { AdhkarView } from './components/adhkar/AdhkarView';
-import { HadithView } from './components/hadith/HadithView';
-import { FavoritesView } from './components/favorites/FavoritesView';
-import { SourcesView } from './components/sources/SourcesView';
+
+// Lazy load secondary views to keep initial bundle ultra-light
+const PrayerTimesView = lazy(() => import('./components/prayer/PrayerTimesView').then((m) => ({ default: m.PrayerTimesView })));
+const QiblaView = lazy(() => import('./components/qibla/QiblaView').then((m) => ({ default: m.QiblaView })));
+const AdhkarView = lazy(() => import('./components/adhkar/AdhkarView').then((m) => ({ default: m.AdhkarView })));
+const HadithView = lazy(() => import('./components/hadith/HadithView').then((m) => ({ default: m.HadithView })));
+const FavoritesView = lazy(() => import('./components/favorites/FavoritesView').then((m) => ({ default: m.FavoritesView })));
+const SourcesView = lazy(() => import('./components/sources/SourcesView').then((m) => ({ default: m.SourcesView })));
+const CharityHarvestView = lazy(() => import('./components/charity/CharityHarvestView').then((m) => ({ default: m.CharityHarvestView })));
+const AdminLoginView = lazy(() => import('./components/admin/AdminLoginView').then((m) => ({ default: m.AdminLoginView })));
+const AdminDashboard = lazy(() => import('./components/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard })));
+
 import { SearchModal } from './components/common/SearchModal';
 import { TasbeehModal } from './components/common/TasbeehModal';
 import { SettingsModal } from './components/common/SettingsModal';
@@ -28,11 +34,9 @@ import { WelcomeModal } from './components/common/WelcomeModal';
 import { QuickSetupModal } from './components/onboarding/QuickSetupModal';
 import { CharityCard } from './components/charity/CharityCard';
 import { LogGoodDeedModal } from './components/charity/LogGoodDeedModal';
-import { CharityHarvestView } from './components/charity/CharityHarvestView';
-import { AdminLoginView } from './components/admin/AdminLoginView';
-import { AdminDashboard } from './components/admin/AdminDashboard';
 import { OfflineBanner } from './components/common/OfflineBanner';
 import { ToastProvider } from './components/common/Toast';
+
 
 import { PageType, AdhkarCategory, HadithTopic, Dhikr, Hadith, DailyMessage } from './types';
 import { HomeCardId } from './types/onboarding';
@@ -273,23 +277,35 @@ export function AppContent() {
     }
   };
 
+  const ViewLoader = () => (
+    <div className="min-h-[50vh] flex flex-col items-center justify-center gap-3 py-16">
+      <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20 animate-pulse">
+        <div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+      <span className="text-xs font-medium text-stone-500 dark:text-slate-400 font-sans">
+        جاري التحميل...
+      </span>
+    </div>
+  );
+
   if (currentPage === 'admin') {
-    if (!adminToken) {
-      return (
-        <AdminLoginView
-          onLoginSuccess={(token) => setAdminToken(token)}
-          onNavigateHome={() => handleNavigate('home')}
-        />
-      );
-    }
     return (
-      <AdminDashboard
-        onLogout={() => {
-          localStorage.removeItem('sakinah_admin_token');
-          setAdminToken(null);
-        }}
-        onNavigateHome={() => handleNavigate('home')}
-      />
+      <Suspense fallback={<ViewLoader />}>
+        {!adminToken ? (
+          <AdminLoginView
+            onLoginSuccess={(token) => setAdminToken(token)}
+            onNavigateHome={() => handleNavigate('home')}
+          />
+        ) : (
+          <AdminDashboard
+            onLogout={() => {
+              localStorage.removeItem('sakinah_admin_token');
+              setAdminToken(null);
+            }}
+            onNavigateHome={() => handleNavigate('home')}
+          />
+        )}
+      </Suspense>
     );
   }
 
@@ -336,85 +352,87 @@ export function AppContent() {
             </div>
           )}
 
-          {currentPage === 'prayer-times' && (
-            <PrayerTimesView
-              onNavigate={handleNavigate}
-              onRestartSetup={handleRestartOnboarding}
-            />
-          )}
+          <Suspense fallback={<ViewLoader />}>
+            {currentPage === 'prayer-times' && (
+              <PrayerTimesView
+                onNavigate={handleNavigate}
+                onRestartSetup={handleRestartOnboarding}
+              />
+            )}
 
-          {currentPage === 'qibla' && (
-            <QiblaView onNavigate={handleNavigate} />
-          )}
+            {currentPage === 'qibla' && (
+              <QiblaView onNavigate={handleNavigate} />
+            )}
 
-          {currentPage === 'charity' && (
-            <CharityHarvestView
-              deeds={charityDeeds}
-              todayDeeds={charityTodayDeeds}
-              weeklySummary={charityWeeklySummary}
-              streak={charityStreak}
-              randomSecretIdea={randomSecretIdea}
-              onRefreshSecretIdea={refreshSecretIdea}
-              onOpenLogging={openCharityLogging}
-              onLogSecretDeed={logSecretDeed}
-              onDeleteDeed={deleteCharityDeed}
-              onNavigate={handleNavigate}
-            />
-          )}
+            {currentPage === 'charity' && (
+              <CharityHarvestView
+                deeds={charityDeeds}
+                todayDeeds={charityTodayDeeds}
+                weeklySummary={charityWeeklySummary}
+                streak={charityStreak}
+                randomSecretIdea={randomSecretIdea}
+                onRefreshSecretIdea={refreshSecretIdea}
+                onOpenLogging={openCharityLogging}
+                onLogSecretDeed={logSecretDeed}
+                onDeleteDeed={deleteCharityDeed}
+                onNavigate={handleNavigate}
+              />
+            )}
 
-          {currentPage === 'adhkar' && (
-            <AdhkarView
-              adhkar={adhkarData}
-              counts={counts}
-              onIncrement={incrementCount}
-              onReset={resetCount}
-              onResetAllCategory={resetAllCategoryCounts}
-              isFavorite={isDhikrFavorite}
-              onToggleFavorite={toggleDhikrFavorite}
-              onOpenShare={(d) => setShareItem(d)}
-              onOpenReadingMode={() => setIsReadingModeOpen(true)}
-              onSavePosition={savePosition}
-              lastPosition={lastPosition}
-              settings={settings}
-              selectedCategory={selectedAdhkarCategory}
-              onSelectCategory={setSelectedAdhkarCategory}
-            />
-          )}
+            {currentPage === 'adhkar' && (
+              <AdhkarView
+                adhkar={adhkarData}
+                counts={counts}
+                onIncrement={incrementCount}
+                onReset={resetCount}
+                onResetAllCategory={resetAllCategoryCounts}
+                isFavorite={isDhikrFavorite}
+                onToggleFavorite={toggleDhikrFavorite}
+                onOpenShare={(d) => setShareItem(d)}
+                onOpenReadingMode={() => setIsReadingModeOpen(true)}
+                onSavePosition={savePosition}
+                lastPosition={lastPosition}
+                settings={settings}
+                selectedCategory={selectedAdhkarCategory}
+                onSelectCategory={setSelectedAdhkarCategory}
+              />
+            )}
 
-          {currentPage === 'hadith' && (
-            <HadithView
-              hadiths={hadithsData}
-              isFavorite={isHadithFavorite}
-              onToggleFavorite={toggleHadithFavorite}
-              onOpenShare={(h) => setShareItem(h)}
-              settings={settings}
-              activeTopic={selectedHadithTopic}
-              onSelectTopic={setSelectedHadithTopic}
-            />
-          )}
+            {currentPage === 'hadith' && (
+              <HadithView
+                hadiths={hadithsData}
+                isFavorite={isHadithFavorite}
+                onToggleFavorite={toggleHadithFavorite}
+                onOpenShare={(h) => setShareItem(h)}
+                settings={settings}
+                activeTopic={selectedHadithTopic}
+                onSelectTopic={setSelectedHadithTopic}
+              />
+            )}
 
-          {currentPage === 'favorites' && (
-            <FavoritesView
-              allAdhkar={adhkarData}
-              allHadiths={hadithsData}
-              favoriteAdhkarIds={favorites.adhkar}
-              favoriteHadithIds={favorites.hadiths}
-              counts={counts}
-              onIncrementDhikr={incrementCount}
-              onResetDhikr={resetCount}
-              onToggleDhikrFavorite={toggleDhikrFavorite}
-              onToggleHadithFavorite={toggleHadithFavorite}
-              onOpenShareDhikr={(d) => setShareItem(d)}
-              onOpenShareHadith={(h) => setShareItem(h)}
-              onClearAll={clearAllFavorites}
-              onNavigate={handleNavigate}
-              settings={settings}
-            />
-          )}
+            {currentPage === 'favorites' && (
+              <FavoritesView
+                allAdhkar={adhkarData}
+                allHadiths={hadithsData}
+                favoriteAdhkarIds={favorites.adhkar}
+                favoriteHadithIds={favorites.hadiths}
+                counts={counts}
+                onIncrementDhikr={incrementCount}
+                onResetDhikr={resetCount}
+                onToggleDhikrFavorite={toggleDhikrFavorite}
+                onToggleHadithFavorite={toggleHadithFavorite}
+                onOpenShareDhikr={(d) => setShareItem(d)}
+                onOpenShareHadith={(h) => setShareItem(h)}
+                onClearAll={clearAllFavorites}
+                onNavigate={handleNavigate}
+                settings={settings}
+              />
+            )}
 
-          {currentPage === 'sources' && (
-            <SourcesView />
-          )}
+            {currentPage === 'sources' && (
+              <SourcesView />
+            )}
+          </Suspense>
         </main>
       </div>
 

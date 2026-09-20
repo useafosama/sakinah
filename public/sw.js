@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sakinah-v2';
+const CACHE_NAME = 'sakinah-v3';
 
 const STATIC_ASSETS = [
   '/',
