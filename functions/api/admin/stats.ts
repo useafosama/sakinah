@@ -284,6 +284,7 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
       '/hadith': 'الأحاديث النبوية',
       '/favorites': 'المفضلة',
       '/sources': 'المصادر والمنهجية',
+      '/settings': 'الإعدادات (Settings)',
       '/admin': 'لوحة تحكم المشرف'
     };
 
@@ -387,15 +388,17 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
     // 10. Recent Events
     const recentRows = await sql`
       SELECT
-        id::text,
-        event_name,
-        path,
-        device_type,
-        country,
-        created_at,
-        metadata
-      FROM analytics_events
-      ORDER BY created_at DESC
+        e.id::text,
+        e.event_name,
+        e.path,
+        e.device_type,
+        e.country,
+        e.created_at,
+        COALESCE(e.visitor_name, v.name) as visitor_name,
+        e.metadata
+      FROM analytics_events e
+      LEFT JOIN analytics_visitors v ON e.visitor_id = v.id
+      ORDER BY e.created_at DESC
       LIMIT 50
     `;
 
@@ -406,6 +409,7 @@ export async function onRequestGet(context: { request: Request; env: Record<stri
       deviceType: r.device_type,
       country: r.country,
       createdAt: r.created_at,
+      visitorName: r.visitor_name || undefined,
       metadata: r.metadata
     }));
 

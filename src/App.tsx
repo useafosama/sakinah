@@ -75,9 +75,6 @@ export function AppContent() {
     }
   });
 
-  // Automatic anonymous page view tracking
-  useAnalytics(currentPage);
-
   const [selectedAdhkarCategory, setSelectedAdhkarCategory] = useState<AdhkarCategory>('morning');
   const [selectedHadithTopic, setSelectedHadithTopic] = useState<HadithTopic>('all');
 
@@ -87,6 +84,9 @@ export function AppContent() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isReadingModeOpen, setIsReadingModeOpen] = useState(false);
   const [shareItem, setShareItem] = useState<Dhikr | Hadith | null>(null);
+
+  // Automatic anonymous page view tracking
+  useAnalytics(currentPage, isSettingsOpen);
 
   // Quick Setup & Onboarding Hook
   const {

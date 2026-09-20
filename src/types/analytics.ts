@@ -26,6 +26,7 @@ export type AnalyticsEventName =
 export interface AnalyticsEventPayload {
   eventName: AnalyticsEventName;
   path: string;
+  visitorName?: string;
   metadata?: Record<string, string | number | boolean | null | undefined>;
   visitorId?: string;
   sessionId?: string;
@@ -123,6 +124,7 @@ export interface EventLogItem {
   id: string;
   eventName: string;
   path: string;
+  visitorName?: string;
   deviceType?: string;
   country?: string;
   createdAt: string;

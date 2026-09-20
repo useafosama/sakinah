@@ -177,7 +177,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const matchSearch =
         ev.eventName.toLowerCase().includes(eventSearch.toLowerCase()) ||
         ev.path.toLowerCase().includes(eventSearch.toLowerCase()) ||
-        (ev.country && ev.country.toLowerCase().includes(eventSearch.toLowerCase()));
+        (ev.country && ev.country.toLowerCase().includes(eventSearch.toLowerCase())) ||
+        (ev.visitorName && ev.visitorName.toLowerCase().includes(eventSearch.toLowerCase())) ||
+        (ev.metadata?.name && String(ev.metadata.name).toLowerCase().includes(eventSearch.toLowerCase()));
       const matchType = selectedEventFilter === 'all' || ev.eventName === selectedEventFilter;
       return matchSearch && matchType;
     });
@@ -780,10 +782,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <div className="flex items-center gap-2.5 flex-wrap">
                             <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" />
                             <span className="font-semibold text-emerald-300">{ev.eventName}</span>
-                            {ev.metadata?.name && (
+                            {(ev.visitorName || ev.metadata?.name) && (
                               <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 text-[11px] font-medium border border-emerald-500/30 flex items-center gap-1">
                                 <span>👤</span>
-                                <span>{String(ev.metadata.name)}</span>
+                                <span>{ev.visitorName || (ev.metadata?.name ? String(ev.metadata.name) : '')}</span>
                               </span>
                             )}
                             <span className="text-slate-400 font-mono">{ev.path}</span>
@@ -1288,10 +1290,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 <span className="font-semibold text-emerald-400">
                                   {ev.eventName}
                                 </span>
-                                {ev.metadata?.name && (
+                                {(ev.visitorName || ev.metadata?.name) && (
                                   <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 text-[10px] font-medium border border-emerald-500/30 flex items-center gap-1">
                                     <span>👤</span>
-                                    <span>{String(ev.metadata.name)}</span>
+                                    <span>{ev.visitorName || (ev.metadata?.name ? String(ev.metadata.name) : '')}</span>
                                   </span>
                                 )}
                               </div>

@@ -46,6 +46,8 @@ export async function onRequestPost(context: { request: Request; env: Record<str
       const browser = (ev.browser || 'Unknown').slice(0, 50);
       const os = (ev.os || 'Unknown').slice(0, 50);
 
+      const visitorName = (ev.visitorName || ev.metadata?.name || '').trim().slice(0, 100);
+
       // Clean metadata strictly avoiding amounts or sensitive data
       const metadata: Record<string, any> = {};
       if (ev.metadata && typeof ev.metadata === 'object') {
@@ -76,11 +78,12 @@ export async function onRequestPost(context: { request: Request; env: Record<str
         continue;
       }
 
-      // 1. Upsert Visitor
+      // 1. Upsert Visitor (and update name if provided)
       await sql`
-        INSERT INTO analytics_visitors (id, first_seen_at, last_seen_at, total_sessions, total_pageviews, first_referrer, first_country)
-        VALUES (${visitorId}, NOW(), NOW(), 1, ${eventName === 'page_view' ? 1 : 0}, ${referrer}, ${country})
+        INSERT INTO analytics_visitors (id, name, first_seen_at, last_seen_at, total_sessions, total_pageviews, first_referrer, first_country)
+        VALUES (${visitorId}, NULLIF(${visitorName}, ''), NOW(), NOW(), 1, ${eventName === 'page_view' ? 1 : 0}, ${referrer}, ${country})
         ON CONFLICT (id) DO UPDATE SET
+          name = COALESCE(NULLIF(${visitorName}, ''), analytics_visitors.name),
           last_seen_at = NOW(),
           total_pageviews = analytics_visitors.total_pageviews + ${eventName === 'page_view' ? 1 : 0}
       `;
@@ -92,6 +95,7 @@ export async function onRequestPost(context: { request: Request; env: Record<str
         ON CONFLICT (id) DO UPDATE SET
           is_active = TRUE,
           last_activity_at = NOW(),
+          entry_path = CASE WHEN ${eventName} = 'page_view' THEN ${path} ELSE analytics_sessions.entry_path END,
           duration_seconds = GREATEST(analytics_sessions.duration_seconds, EXTRACT(EPOCH FROM (NOW() - analytics_sessions.started_at))::int),
           pageviews_count = analytics_sessions.pageviews_count + ${eventName === 'page_view' ? 1 : 0},
           events_count = analytics_sessions.events_count + 1
@@ -100,8 +104,8 @@ export async function onRequestPost(context: { request: Request; env: Record<str
       // 3. Insert Event (omit heartbeat from events table)
       if (eventName !== 'heartbeat') {
         await sql`
-          INSERT INTO analytics_events (visitor_id, session_id, event_name, path, metadata, country, device_type, created_at)
-          VALUES (${visitorId}, ${sessionId}, ${eventName}, ${path}, ${JSON.stringify(metadata)}::jsonb, ${country}, ${deviceType}, NOW())
+          INSERT INTO analytics_events (visitor_id, session_id, visitor_name, event_name, path, metadata, country, device_type, created_at)
+          VALUES (${visitorId}, ${sessionId}, NULLIF(${visitorName}, ''), ${eventName}, ${path}, ${JSON.stringify(metadata)}::jsonb, ${country}, ${deviceType}, NOW())
         `;
       }
     }

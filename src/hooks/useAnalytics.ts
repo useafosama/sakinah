@@ -3,12 +3,14 @@ import { analytics } from '../services/analytics/tracker';
 import { PageType } from '../types';
 import { AnalyticsEventName } from '../types/analytics';
 
-export function useAnalytics(currentPage?: PageType) {
+export function useAnalytics(currentPage?: PageType, isSettingsOpen?: boolean) {
   useEffect(() => {
-    if (currentPage) {
+    if (isSettingsOpen) {
+      analytics.page('/settings');
+    } else if (currentPage) {
       analytics.page(`/${currentPage === 'home' ? '' : currentPage}`);
     }
-  }, [currentPage]);
+  }, [currentPage, isSettingsOpen]);
 
   const trackEvent = (
     eventName: AnalyticsEventName,

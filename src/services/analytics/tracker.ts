@@ -1,6 +1,7 @@
 import { AnalyticsEventName, AnalyticsEventPayload } from '../../types/analytics';
 
 const VISITOR_ID_KEY = 'sakinah_vid_v1';
+const VISITOR_NAME_KEY = 'sakinah_vname_v1';
 const SESSION_ID_KEY = 'sakinah_sid_v1';
 const SESSION_LAST_ACTIVE_KEY = 'sakinah_slast_v1';
 const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
@@ -9,6 +10,7 @@ const TRACK_ENDPOINT = '/api/track';
 class AnalyticsTracker {
   private visitorId: string = '';
   private sessionId: string = '';
+  private currentPath: string = '/';
   private queue: AnalyticsEventPayload[] = [];
   private flushTimer: number | null = null;
 
@@ -22,10 +24,40 @@ class AnalyticsTracker {
     try {
       this.visitorId = this.getOrCreateVisitorId();
       this.sessionId = this.getOrCreateSessionId();
+      this.currentPath = window.location.pathname || '/';
       this.setupHeartbeat();
       this.setupUnloadFlush();
     } catch {
       // Fail silently to never break the application
+    }
+  }
+
+  public getVisitorName(): string | undefined {
+    try {
+      const saved = localStorage.getItem(VISITOR_NAME_KEY);
+      if (saved && saved.trim()) return saved.trim();
+      const prefsStr = localStorage.getItem('sakinah_user_preferences_v1');
+      if (prefsStr) {
+        const prefs = JSON.parse(prefsStr);
+        if (prefs.displayName && prefs.displayName.trim()) {
+          const trimmed = prefs.displayName.trim();
+          localStorage.setItem(VISITOR_NAME_KEY, trimmed);
+          return trimmed;
+        }
+      }
+    } catch {
+      // Ignore
+    }
+    return undefined;
+  }
+
+  public setVisitorName(name: string) {
+    try {
+      if (name && name.trim()) {
+        localStorage.setItem(VISITOR_NAME_KEY, name.trim());
+      }
+    } catch {
+      // Ignore
     }
   }
 
@@ -160,9 +192,17 @@ class AnalyticsTracker {
         }
       }
 
+      if (cleanMeta.name) {
+        this.setVisitorName(String(cleanMeta.name));
+      }
+
+      const eventPath = (cleanMeta.path as string) || this.currentPath || window.location.pathname || '/';
+      const vName = this.getVisitorName();
+
       const payload: AnalyticsEventPayload = {
         eventName,
-        path: window.location.pathname || '/',
+        path: eventPath.startsWith('/') ? eventPath : `/${eventPath}`,
+        visitorName: vName,
         metadata: Object.keys(cleanMeta).length > 0 ? cleanMeta : undefined,
         visitorId: this.visitorId || this.getOrCreateVisitorId(),
         sessionId: this.sessionId || this.getOrCreateSessionId(),
@@ -180,10 +220,12 @@ class AnalyticsTracker {
   }
 
   /**
-   * Track a page view
+   * Track a page view with accurate path
    */
   public page(path: string, metadata?: Record<string, string | number | boolean | null | undefined>) {
-    this.track('page_view', { ...metadata, path });
+    const formatted = path.startsWith('/') ? path : `/${path}`;
+    this.currentPath = formatted;
+    this.track('page_view', { ...metadata, path: formatted });
   }
 
   private enqueue(payload: AnalyticsEventPayload) {
@@ -256,7 +298,8 @@ class AnalyticsTracker {
       // Create session_leave event and flush immediately
       const payload: AnalyticsEventPayload = {
         eventName: 'session_leave',
-        path: window.location.pathname || '/',
+        path: this.currentPath || window.location.pathname || '/',
+        visitorName: this.getVisitorName(),
         visitorId: this.visitorId || this.getOrCreateVisitorId(),
         sessionId: this.sessionId || this.getOrCreateSessionId(),
         deviceType: this.detectDeviceType(),
