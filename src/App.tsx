@@ -29,6 +29,8 @@ import { QuickSetupModal } from './components/onboarding/QuickSetupModal';
 import { CharityCard } from './components/charity/CharityCard';
 import { LogGoodDeedModal } from './components/charity/LogGoodDeedModal';
 import { CharityHarvestView } from './components/charity/CharityHarvestView';
+import { AdminLoginView } from './components/admin/AdminLoginView';
+import { AdminDashboard } from './components/admin/AdminDashboard';
 import { OfflineBanner } from './components/common/OfflineBanner';
 import { ToastProvider } from './components/common/Toast';
 
@@ -42,6 +44,7 @@ import { useLastPosition } from './hooks/useLastPosition';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import { useOnboarding } from './hooks/useOnboarding';
 import { useCharity } from './hooks/useCharity';
+import { useAnalytics } from './hooks/useAnalytics';
 
 import adhkarDataRaw from './data/adhkar.json';
 import hadithsDataRaw from './data/hadiths.json';
@@ -54,7 +57,27 @@ const versesData = versesDataRaw;
 const dailyMessagesData = dailyMessagesDataRaw as DailyMessage[];
 
 export function AppContent() {
-  const [currentPage, setCurrentPage] = useState<PageType>('home');
+  const [currentPage, setCurrentPage] = useState<PageType>(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path === '/admin' || window.location.search.includes('admin')) {
+        return 'admin';
+      }
+    }
+    return 'home';
+  });
+
+  const [adminToken, setAdminToken] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem('sakinah_admin_token');
+    } catch {
+      return null;
+    }
+  });
+
+  // Automatic anonymous page view tracking
+  useAnalytics(currentPage);
+
   const [selectedAdhkarCategory, setSelectedAdhkarCategory] = useState<AdhkarCategory>('morning');
   const [selectedHadithTopic, setSelectedHadithTopic] = useState<HadithTopic>('all');
 
@@ -149,6 +172,13 @@ export function AppContent() {
 
   const handleNavigate = (page: PageType) => {
     setCurrentPage(page);
+    if (typeof window !== 'undefined' && window.history) {
+      if (page === 'admin') {
+        window.history.pushState(null, '', '/admin');
+      } else if (window.location.pathname === '/admin') {
+        window.history.pushState(null, '', '/');
+      }
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -242,6 +272,26 @@ export function AppContent() {
         return null;
     }
   };
+
+  if (currentPage === 'admin') {
+    if (!adminToken) {
+      return (
+        <AdminLoginView
+          onLoginSuccess={(token) => setAdminToken(token)}
+          onNavigateHome={() => handleNavigate('home')}
+        />
+      );
+    }
+    return (
+      <AdminDashboard
+        onLogout={() => {
+          localStorage.removeItem('sakinah_admin_token');
+          setAdminToken(null);
+        }}
+        onNavigateHome={() => handleNavigate('home')}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-sand-50 dark:bg-night-900 bg-islamic-pattern flex flex-col justify-between text-stone-800 dark:text-night-text transition-colors duration-200">

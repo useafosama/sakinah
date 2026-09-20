@@ -23,6 +23,7 @@ import { PrayerTodayTab } from './PrayerTodayTab';
 import { PrayerHistoryTab } from './PrayerHistoryTab';
 import { PrayerStatsTab } from './PrayerStatsTab';
 import { PrayerSettingsTab } from './PrayerSettingsTab';
+import { analytics } from '../../services/analytics/tracker';
 
 type TabType = 'today' | 'history' | 'stats' | 'settings';
 
@@ -34,6 +35,10 @@ interface PrayerTimesViewProps {
 export const PrayerTimesView: React.FC<PrayerTimesViewProps> = ({ onNavigate, onRestartSetup }) => {
   const [activeTab, setActiveTab] = useState<TabType>('today');
   const [isCityModalOpen, setIsCityModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    analytics.track('prayer_times_opened');
+  }, []);
 
   const {
     settings,

@@ -21,6 +21,7 @@ import { CharitySettings, CharityReminderPreset } from '../../types/charity';
 import { charityService, CHARITY_PRESET_TIMES } from '../../services/charityService';
 import { prayerRepository } from '../../services/prayerRepository';
 import { prayerNotificationService } from '../../services/prayerNotificationService';
+import { analytics } from '../../services/analytics/tracker';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -61,6 +62,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     if (isOpen) {
       setCharitySettings(charityService.getSettings());
       setNotifPermission(prayerNotificationService.getStatus().permission);
+      analytics.track('reminder_opened');
     }
   }, [isOpen]);
 

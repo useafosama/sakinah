@@ -8,6 +8,7 @@ import {
 } from '../types/charity';
 import { charityService, getTodayISODate } from '../services/charityService';
 import { prayerNotificationService, NotificationStatus } from '../services/prayerNotificationService';
+import { analytics } from '../services/analytics/tracker';
 
 export interface UseCharityReturn {
   settings: CharitySettings;
@@ -138,6 +139,10 @@ export function useCharity(): UseCharityReturn {
     ) => {
       const created = charityService.logDeed(type, options);
       refreshData();
+      analytics.track(options?.isSecret ? 'secret_good_deed_logged' : 'good_deed_logged', {
+        deed_type: type,
+        is_secret: !!options?.isSecret,
+      });
       return created;
     },
     [refreshData]
@@ -151,6 +156,9 @@ export function useCharity(): UseCharityReturn {
         isSecret: true,
       });
       refreshData();
+      analytics.track('secret_good_deed_logged', {
+        deed_type: idea.type,
+      });
       return created;
     },
     [refreshData]
@@ -168,6 +176,11 @@ export function useCharity(): UseCharityReturn {
     (updates: Partial<CharitySettings>) => {
       const updated = charityService.saveSettings(updates);
       setSettings(updated);
+      if (updates.notificationsEnabled !== undefined) {
+        analytics.track(
+          updates.notificationsEnabled ? 'charity_reminder_enabled' : 'charity_reminder_disabled'
+        );
+      }
     },
     []
   );

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Sun, Moon, Bed, RotateCcw, CheckCircle2, Search, BookOpenText } from 'lucide-react';
 import { Dhikr, AdhkarCategory, ReadingSettings, LastPosition } from '../../types';
 import { DhikrCard } from './DhikrCard';
+import { analytics } from '../../services/analytics/tracker';
 
 interface AdhkarViewProps {
   adhkar: Dhikr[];
@@ -60,6 +61,11 @@ export const AdhkarView: React.FC<AdhkarViewProps> = ({
   // Filter adhkar by selected category
   const categoryAdhkar = adhkar.filter((item) => item.category === selectedCategory);
 
+  // Track category view
+  useEffect(() => {
+    analytics.track('dhikr_category_opened', { category: selectedCategory });
+  }, [selectedCategory]);
+
   // Apply search query if typed
   const filteredAdhkar = categoryAdhkar.filter((item) => {
     if (!localSearch.trim()) return true;
@@ -85,6 +91,13 @@ export const AdhkarView: React.FC<AdhkarViewProps> = ({
 
   const handleDhikrCount = (id: string, target: number) => {
     onSavePosition(selectedCategory, id);
+    const current = counts[id] || 0;
+    if (current === 0) {
+      analytics.track('dhikr_started', { dhikr_id: id, category: selectedCategory });
+    }
+    if (current + 1 >= target) {
+      analytics.track('dhikr_completed', { dhikr_id: id, category: selectedCategory });
+    }
     onIncrement(id, target);
   };
 

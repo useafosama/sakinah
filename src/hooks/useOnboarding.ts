@@ -14,6 +14,7 @@ import {
 } from '../services/onboardingService';
 import { prayerRepository } from '../services/prayerRepository';
 import { prayerNotificationService, NotificationStatus } from '../services/prayerNotificationService';
+import { analytics } from '../services/analytics/tracker';
 
 export interface UseOnboardingReturn {
   onboardingState: OnboardingState;
@@ -85,6 +86,7 @@ export function useOnboarding(): UseOnboardingReturn {
   const openSetup = useCallback(() => {
     setCurrentStep(0);
     setIsOpen(true);
+    analytics.track('quick_setup_started');
   }, []);
 
   const closeSetup = useCallback(() => {
@@ -170,6 +172,9 @@ export function useOnboarding(): UseOnboardingReturn {
   const requestNotificationPermission = useCallback(async () => {
     const perm = await prayerNotificationService.requestPermission();
     setNotificationStatus(prayerNotificationService.getStatus());
+    if (perm === 'granted') {
+      analytics.track('prayer_notification_enabled');
+    }
     return perm;
   }, []);
 
@@ -179,6 +184,7 @@ export function useOnboarding(): UseOnboardingReturn {
       completeOnboarding(name);
       setOnboardingState(getStoredOnboardingState());
       setIsOpen(false);
+      analytics.track('quick_setup_completed');
     },
     [userPreferences.displayName]
   );
@@ -187,6 +193,7 @@ export function useOnboarding(): UseOnboardingReturn {
     skipOnboarding();
     setOnboardingState(getStoredOnboardingState());
     setIsOpen(false);
+    analytics.track('quick_setup_skipped');
   }, []);
 
   const handleRestart = useCallback(() => {

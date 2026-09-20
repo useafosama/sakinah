@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { analytics } from '../services/analytics/tracker';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -34,11 +35,13 @@ export function usePWAInstall() {
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
+      analytics.track('pwa_install_prompt');
     };
 
     const handleAppInstalled = () => {
       setIsStandalone(true);
       setDeferredPrompt(null);
+      analytics.track('pwa_installed');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -56,6 +59,7 @@ export function usePWAInstall() {
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
         setIsStandalone(true);
+        analytics.track('pwa_installed');
       }
       setDeferredPrompt(null);
     } else if (isIOS) {

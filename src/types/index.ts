@@ -1,8 +1,9 @@
-export type PageType = 'home' | 'prayer-times' | 'qibla' | 'charity' | 'adhkar' | 'hadith' | 'favorites' | 'sources';
+export type PageType = 'home' | 'prayer-times' | 'qibla' | 'charity' | 'adhkar' | 'hadith' | 'favorites' | 'sources' | 'admin';
 
 export * from './prayer';
 export * from './onboarding';
 export * from './charity';
+export * from './analytics';
 
 export type AdhkarCategory = 'morning' | 'evening' | 'after_prayer' | 'general' | 'sleep';
 
